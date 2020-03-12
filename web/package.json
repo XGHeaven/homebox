@@ -1,11 +1,27 @@
 {
   "name": "homebox",
+  "private": true,
   "version": "0.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "parcel serve ./src/index.html ./src/worker.ts",
+    "build": "parcel build --no-source-maps --detailed-report -d dist ./src/index.html ./src/worker.ts"
   },
   "author": "XGHeaven <xgheaven@gmail.com>",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.8.7",
+    "@babel/plugin-transform-runtime": "^7.8.3",
+    "parcel-bundler": "^1.12.4"
+  },
+  "dependencies": {
+    "core-js": "^3.6.4",
+    "preact": "^10.3.4",
+    "regenerator-runtime": "^0.13.3",
+    "typescript": "^3.8.3"
+  },
+  "browserslist": [
+    "last 2 versions"
+  ]
 }

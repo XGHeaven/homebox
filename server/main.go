@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
 	"strconv"
@@ -44,7 +43,7 @@ func main() {
 	})
 
 	r.GET("/download", func(c *gin.Context) {
-
+		c.Header("Access-Control-Allow-Origin", "*")
 		packCount, err := strconv.ParseInt(c.Query("count"), 10, 64)
 		if err != nil {
 			packCount = 1024 * 8
@@ -56,7 +55,6 @@ func main() {
 		}
 
 		data := make([]byte, WRITE_PACK_SIZE)
-		fmt.Println(packCount, packSize)
 
 		c.Header("Content-Length", strconv.FormatInt(packCount * packSize, 10))
 
