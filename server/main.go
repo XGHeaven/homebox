@@ -58,11 +58,17 @@ func main() {
 
 		c.Header("Content-Length", strconv.FormatInt(packCount * packSize, 10))
 
+		i := packCount
 		c.Stream(func(w io.Writer) bool {
-			for i := int64(0); i < packCount; i++ {
+			c := i
+			if i > 100 {
+				c = 100
+			}
+			for j := int64(0); j < c; j++ {
 				w.Write(data)
 			}
-			return false
+			i -= 100
+			return i > 0
 		})
 	})
 

@@ -2,12 +2,8 @@ import 'regenerator-runtime/runtime'
 import 'core-js/stable'
 
 import { ChannelType } from './types'
-
-self.onmessage = (e: any) => {
-  if (e.data.type === ChannelType.RUN_DOWNLOAD) {
-    startDownload(data => self.postMessage({type: ChannelType.DOWNLOAD_TEST, data}))
-  }
-}
+import { WorkerChannel } from './channel'
+import { download } from './cases/download'
 
 function *downloadThread(): Generator<[number, number], [number, number], boolean> {
   const xhr = new XMLHttpRequest()
@@ -52,7 +48,7 @@ function *downloadThread(): Generator<[number, number], [number, number], boolea
   xhr.onerror = () => {
     finished = true
   }
-  xhr.open('GET', 'http://localhost:3300/download?count=1024000&size=1024')
+  xhr.open('GET', 'http://localhost:3300/download?count=20480&size=1024')
   xhr.send()
 
   let ret = true
@@ -113,3 +109,12 @@ function startDownload(onProgress: (progress: [number, number]) => void) {
 
   setTimeout(wait, 100)
 }
+
+const channelModule = {
+  name: () => 'some name',
+  download
+}
+
+export type ChannelModule = typeof channelModule
+
+const channel = new WorkerChannel(channelModule)
