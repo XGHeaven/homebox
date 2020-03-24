@@ -1,5 +1,7 @@
 import { interval, Observable } from 'rxjs'
 import { take } from 'rxjs/operators'
+import { createStat } from './utils'
+import { BASE_URL } from '../const'
 
 export interface DownloadProgressStat {
   // 当前分片下载的大小
@@ -12,7 +14,83 @@ export interface DownloadProgressStat {
   total: number
 }
 
-export function *downloadThread(count: number = 10240, size: number = 2048): Generator<DownloadProgressStat, DownloadProgressStat, boolean> {
+export function *fetchDownload(count = 10): Generator<DownloadProgressStat, DownloadProgressStat, boolean> {
+  let time = 0
+  let progresses: Array<{
+    size: number,
+    duration: number
+  }> = []
+  let loaded = 0
+  let total = -1
+  let finished = false
+
+  function getRate() {
+    let totalTime = 0
+    let totalSize = 0
+    let i = progresses.length - 1
+    for (i = 0; i < progresses.length; i++) {
+      totalTime += progresses[i].duration
+      totalSize += progresses[i].size
+    }
+    progresses = []
+
+    return {
+      size: totalSize,
+      duration: totalTime,
+      total,
+      loaded,
+    }
+  }
+
+  fetch(`${BASE_URL}/download?count=${count}`, {
+    method: 'get',
+  }).then(async resp => {
+    // IMPROVE
+    total = parseInt(resp.headers.get('content-length')!, 10)
+    time = performance.now()
+    const reader = resp.body?.getReader()
+    for(;;) {
+      const data = await reader?.read()
+      if (!data) {
+        finished = true
+        break
+      }
+
+      const { value, done } = data
+
+      const size = value?.length ?? 0
+      const now = performance.now()
+      const duration = now - time
+
+      progresses.push({size, duration})
+      total += size
+      time = now
+
+      if (done) {
+        finished = true
+        break;
+      }
+    }
+
+    if (finished) {
+      reader?.cancel()
+    }
+  })
+
+  let ret = true
+  do {
+    if (finished) {
+      return getRate()
+    }
+    ret = yield getRate()
+  } while(ret)
+  finished = true
+  // TODO: cancel
+
+  return {} as any
+}
+
+export function *xhrDownload(count: number = 10): Generator<DownloadProgressStat, DownloadProgressStat, boolean> {
   const xhr = new XMLHttpRequest()
   let start = 0
   let progressTime = performance.now()
@@ -49,23 +127,28 @@ export function *downloadThread(count: number = 10240, size: number = 2048): Gen
   }
 
   xhr.onprogress = (ev) => {
+    const current = performance.now()
     progresses.push({
       size: ev.loaded - loaded,
-      duration: performance.now() - progressTime
+      duration: current - progressTime
     })
     loaded = ev.loaded
     total = ev.lengthComputable ? ev.total : -1
-    progressTime = performance.now()
+    progressTime = current
   }
+
   xhr.onload = () => {
     finished = true
+    try {xhr.abort()} catch(e) {}
     console.log(performance.now() - start, progressTime - start)
   }
+
   xhr.onerror = () => {
+    try {xhr.abort()} catch(e) {}
     finished = true
   }
 
-  xhr.open('GET', `http://localhost:3300/download?count=${count}&size=${size}`)
+  xhr.open('GET', `${BASE_URL}/download?count=${count}`)
   xhr.send()
 
   let ret = true
@@ -77,74 +160,10 @@ export function *downloadThread(count: number = 10240, size: number = 2048): Gen
   } while(ret)
 
   // TODO: 要处理强制停止的情况
-  xhr.abort()
+  try {xhr.abort()} catch(e) {}
 
   // 这里无关紧要
   return {} as any
 }
 
-export function download({
-  duration: maxDuration = 5000,
-  interval: checkInterval = 100,
-  parallel = 3,
-  // 20M
-  packCount = 20480,
-  packSize = 1024,
-}: {
-  duration?: number,
-  interval?: number,
-  parallel?: number,
-  packCount?: number,
-  packSize?: number
-} = {
-}) {
-  return new Observable<number>(sub => {
-    const timer = interval(checkInterval).pipe(take(Math.floor(maxDuration / checkInterval)))
-    const now = performance.now()
-    const threads: ReturnType<typeof downloadThread>[] = new Array(parallel).fill(null).map(() => {
-      const thread = downloadThread(packCount, packSize)
-      thread.next(true)
-      return thread;
-    })
-
-    let usedTime = 0
-
-    function next() {
-      usedTime = performance.now() - now
-
-      let totalSize = 0
-      let totalTime = 0
-      for (let i = 0; i < parallel; i++) {
-        const thread = threads[i]
-        const { value, done } = thread.next(true)
-        if (!value) { continue }
-        if (done) {
-          if (usedTime < maxDuration) {
-            threads[i] = downloadThread(packCount, packSize)
-            threads[i].next(true)
-          } else {
-            threads[i] = undefined as any
-          }
-        }
-        const {size, duration} = value
-        totalSize += size
-        totalTime += duration
-      }
-
-      sub.next(totalSize / (totalTime + 0.01) * 1000)
-    }
-
-    function complete() {
-      for (const thread of threads) {
-        if (thread) {
-          thread.next(false)
-        }
-      }
-    }
-
-    timer.subscribe({
-      next,
-      complete
-    })
-  })
-}
+export const download = createStat(fetchDownload)
