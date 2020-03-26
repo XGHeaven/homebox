@@ -22,8 +22,8 @@ export function createStat(caseCreator: CaseCreator) {
     duration: maxDuration = 5000,
   interval: checkInterval = 200,
   parallel = 3,
-  // 20M
-  packCount = 20480,
+  // 64M
+  packCount = 64,
   packSize = 1024,
   setupDelay = 50
   }: StatObservableOptions): Observable<number> => new Observable<number>(sub => {

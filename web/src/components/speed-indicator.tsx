@@ -4,7 +4,8 @@ import { memo, useContext } from "react";
 import { RateFormatterContext } from "../context";
 
 const K = 1024
-const SPEED_SPANS = [0, 128, 512, 2048, 8000, 20000, 80000, 125000, 1024 * 1024].map(v => v * K)
+const SPEED_SPANS = [0, 64, 128, 256, 512, 1024, 2 * K, 4 * K, 8 * K, 16 * K, 32 * K, 1024 * K].map(v => v * K)
+const SPAN_PERCENT = 1 / SPEED_SPANS.length
 
 export const SpeedIndicator = memo(function SpeedIndicator({speed}: {
   speed?: number
@@ -18,7 +19,7 @@ export const SpeedIndicator = memo(function SpeedIndicator({speed}: {
     } else if (i === 0) {
       pbp.value = 0
     } else {
-      pbp.value = (i / SPEED_SPANS.length) - (SPEED_SPANS[i] - speed) / (SPEED_SPANS[i] - SPEED_SPANS[i - 1])
+      pbp.value = i * SPAN_PERCENT - (SPEED_SPANS[i] - speed) / (SPEED_SPANS[i] - SPEED_SPANS[i - 1]) * SPAN_PERCENT
     }
     if (pbp.value < .1) {
       pbp.intent = 'danger'
