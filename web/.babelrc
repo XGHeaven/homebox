@@ -1,7 +1,12 @@
 {
+  "presets": [
+    "@babel/preset-react",
+    "@emotion/babel-preset-css-prop"
+  ],
   "plugins": [
     ["@babel/plugin-transform-runtime", {
       "regenerator": true
-    }]
+    }],
+    "emotion"
   ]
 }

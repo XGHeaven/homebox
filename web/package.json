@@ -11,19 +11,31 @@
   "author": "XGHeaven <xgheaven@gmail.com>",
   "license": "ISC",
   "devDependencies": {
-    "@babel/core": "^7.8.7",
+    "@babel/core": "^7.9.0",
     "@babel/plugin-transform-runtime": "^7.8.3",
+    "@babel/preset-react": "^7.9.4",
     "@types/node": "^13.9.3",
+    "@types/react": "^16.9.25",
+    "@types/react-dom": "^16.9.5",
+    "babel-plugin-emotion": "^10.0.29",
     "parcel-bundler": "^1.12.4"
   },
   "dependencies": {
+    "@blueprintjs/core": "^3.24.0",
+    "@emotion/babel-preset-css-prop": "^10.0.27",
+    "@emotion/core": "^10.0.28",
+    "@emotion/styled": "^10.0.27",
     "core-js": "^3.6.4",
-    "preact": "^10.3.4",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
     "regenerator-runtime": "^0.13.3",
     "rxjs": "^6.5.4",
     "typescript": "^3.8.3"
   },
   "browserslist": [
-    "last 2 versions"
+    "Chrome >= 58",
+    "Safari >= 10",
+    "Firefox >= 53",
+    "Edge >= 15"
   ]
 }

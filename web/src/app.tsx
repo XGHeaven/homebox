@@ -1,44 +1,70 @@
-import { h } from 'preact'
-import { useMemo, useState, useRef } from 'preact/hooks'
+import React, { useCallback } from 'react'
+import { useMemo, useState, useRef } from 'react'
 import { HostChannel } from './channel'
 import type { ChannelModule } from './worker'
-import { parseByteRate, parseBitRate } from './utils'
+import styled from '@emotion/styled'
+import { Global, css } from '@emotion/core'
+
+import '@blueprintjs/core/lib/css/blueprint.css'
+import { ChannelContext, RateFormatterContext } from './context'
+import { CaseRunner } from './components/download-case'
+import { Button } from '@blueprintjs/core'
+import { RateFormatterType as RateUnit, rateFormatters } from './utils'
+
+const CContainer = styled.div`
+  padding: 12px 24px;
+  max-width: 864px;
+  margin: auto;
+  height: 100%;
+`
+
+const CHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+`
 
 export function App() {
-  const channel = useMemo(() => new HostChannel<ChannelModule>(new Worker('./worker.ts')), [])
-  const [rates, setRates] = useState<number[]>([])
-  const rateRef = useRef(rates)
-  rateRef.current = rates
+  const [unit, setUnit] = useState<RateUnit>('bit')
+  const channelRef = useRef<HostChannel<any> | null>(null)
+  const createChannel = useCallback(async () => {
+    if (channelRef.current) {
+      return channelRef.current
+    }
+
+    const worker = new Worker('./worker.ts')
+    channelRef.current = new HostChannel<ChannelModule>(worker)
+    return channelRef.current
+  }, [])
+
   return (
-    <div>
-  <button onClick={() => {
-    setRates([])
-    channel.observe('download', {packCount: 64, duration: 10 * 1000, interval: 200, parallel: 3}).subscribe(rate => {
-      const newRates = [...rateRef.current, rate]
-      // 用 4s 的平均值
-      if (newRates.length > 20) {
-        newRates.shift()
-      }
-
-      // console.log(newRates)
-      setRates(newRates)
-    }, v => console.log(v, 'done'))
-  }}>Download</button>
-  <button onClick={() => {
-    setRates([])
-    channel.observe('upload', {packCount: 64, duration: 10 * 1000, interval: 200, parallel: 3}).subscribe(rate => {
-      const newRates = [...rateRef.current, rate]
-      // 用 4s 的平均值
-      if (newRates.length > 20) {
-        newRates.shift()
-      }
-
-      // console.log(newRates)
-      setRates(newRates)
-    }, v => console.log(v, 'done'))
-  }}>Upload</button>
-  {parseByteRate(rates.reduce((a, b) => a + b, 0) / rates.length)}
-  {parseBitRate(rates.reduce((a, b) => a + b, 0) / rates.length * 8)}
-    </div>
+    <ChannelContext.Provider value={createChannel}>
+      <RateFormatterContext.Provider value={rateFormatters[unit]}>
+      <Global
+        styles={css`
+          html, body {
+            padding: 0;
+            margin: 0;
+          }
+        `}
+      />
+      <CContainer>
+        <CHeader>
+          <div>
+          网速测试 | 持续压测
+          </div>
+          <div>
+            <Button minimal={true} intent={unit === 'bit' ? 'success' : 'none'} onClick={() => setUnit('bit')}>Bit Unit</Button>
+            <Button minimal={true} intent={unit === 'byte' ? 'success' : 'none'} onClick={() => setUnit('byte')}>Byte Unit</Button>
+          </div>
+        </CHeader>
+        <div css={css`
+  display: flex;
+  `}>
+          <CaseRunner title="Download" name="download"/>
+          <CaseRunner title="Upload" name="upload"/>
+        </div>
+      </CContainer>
+      </RateFormatterContext.Provider>
+    </ChannelContext.Provider>
   )
 }

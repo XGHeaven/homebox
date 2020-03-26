@@ -1,7 +1,8 @@
 import 'regenerator-runtime/runtime'
 import 'core-js/stable'
 
-import { render, h } from 'preact'
+import React from 'react'
+import { render } from 'react-dom'
 
 import { App } from './app'
 

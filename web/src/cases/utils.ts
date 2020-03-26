@@ -20,7 +20,7 @@ export interface StatObservableOptions {
 export function createStat(caseCreator: CaseCreator) {
   return ({
     duration: maxDuration = 5000,
-  interval: checkInterval = 100,
+  interval: checkInterval = 200,
   parallel = 3,
   // 20M
   packCount = 20480,

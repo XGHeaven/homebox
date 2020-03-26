@@ -12,14 +12,15 @@ var (
 )
 
 const (
-	READ_PACK_SIZE = 1 * 1024
+	READ_PACK_SIZE  = 1 * 1024
 	WRITE_PACK_SIZE = 1 * 1024 * 1024
 )
 
 func main() {
 	isProd := ENV == "production"
 	r := gin.Default()
-	if (isProd) {
+
+	if isProd {
 		r.LoadHTMLGlob("./static/*.html")
 		r.Static("/static", "./static")
 
@@ -27,9 +28,11 @@ func main() {
 			ctx.HTML(200, "index.html", struct{}{})
 		})
 	}
+
 	r.OPTIONS("/upload", func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
 	})
+
 	r.POST("/upload", func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
 		body := c.Request.Body
@@ -40,11 +43,11 @@ func main() {
 			n, err := body.Read(data)
 			length += n
 			if err != nil {
-				if (err != io.EOF) {
+				if err != io.EOF {
 					c.JSON(400, gin.H{
 						"error": err.Error(),
 					})
-					return;
+					return
 				}
 				break
 			}
@@ -52,9 +55,9 @@ func main() {
 		duration := time.Now().UnixNano() - now.UnixNano()
 
 		c.JSON(200, gin.H{
-			"length": length,
+			"length":   length,
 			"duration": float64(duration) / 1000 / 1000,
-			"rate": float64(length) / float64(duration) * 1000 * 1000 * 1000,
+			"rate":     float64(length) / float64(duration) * 1000 * 1000 * 1000,
 		})
 	})
 
@@ -69,13 +72,13 @@ func main() {
 		}
 		packSize, err := strconv.ParseInt(c.Query("size"), 10, 64)
 
-		if (err != nil) {
+		if err != nil {
 			packSize = WRITE_PACK_SIZE
 		}
 
 		data := make([]byte, WRITE_PACK_SIZE)
 
-		c.Header("Content-Length", strconv.FormatInt(packCount * packSize, 10))
+		c.Header("Content-Length", strconv.FormatInt(packCount*packSize, 10))
 
 		i := packCount
 		c.Stream(func(w io.Writer) bool {
