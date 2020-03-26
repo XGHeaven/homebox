@@ -1,14 +1,17 @@
 import { CaseCreator, ProgressStat, createStat } from "./utils";
 import { BASE_URL } from "../const";
 
-let buffer: ArrayBuffer
+let blob1M = new Blob([new ArrayBuffer(1024 * 1024)])
+let blobCache: Blob
+let blobCacheCount: number
 
 export const xhrUpload: CaseCreator = function*(count = 64) {
   const xhr = new XMLHttpRequest()
-  if (!buffer) {
-    buffer = new ArrayBuffer(1024 * 1024) // 1M
+  if (!blobCache || blobCacheCount !== count) {
+    blobCacheCount = count
+    blobCache = new Blob(new Array(count).fill(blob1M))
   }
-  const data = new Blob(new Array(count).fill(buffer))
+  const data = blobCache
   let finished = false
   let processes: Array<ProgressStat> = []
   let loaded = 0
