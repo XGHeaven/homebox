@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"io"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -21,11 +22,17 @@ func main() {
 	r := gin.Default()
 
 	if isProd {
-		r.LoadHTMLGlob("./static/*.html")
-		r.Static("/static", "./static")
+		//r.LoadHTMLGlob("./static/*.html")
+		//r.Static("/static", "./static")
+		r.StaticFS("/static", AssetFile())
+		html, _ := Asset("index.html")
 
 		r.GET("/", func(ctx *gin.Context) {
-			ctx.HTML(200, "index.html", struct{}{})
+			ctx.Header("Content-Type", "text/html")
+			ctx.Stream(func(w io.Writer) bool {
+				w.Write(html)
+				return false
+			})
 		})
 	}
 
