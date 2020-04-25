@@ -1,5 +1,4 @@
-import { Observable, interval } from "rxjs"
-import { take } from "rxjs/operators"
+import { Observable, interval, Subscription } from "rxjs"
 
 export interface ProgressStat {
   size: number
@@ -27,17 +26,27 @@ export function createStat(caseCreator: CaseCreator) {
   packSize = 1024,
   setupDelay = 50
   }: StatObservableOptions): Observable<number> => new Observable<number>(sub => {
+    const maxCount = Math.floor(maxDuration / checkInterval)
+    let finished = false
+    let timerSub: Subscription | undefined
+    let count = 0
     if (parallel <= 1) {
       parallel = 1
     }
 
-    const timer = interval(checkInterval).pipe(take(Math.floor(maxDuration / checkInterval)))
+    const timer = interval(checkInterval)
 
     const threads: ReturnType<CaseCreator>[] = new Array(parallel).fill(null).map(() => {
       return caseCreator(packCount)
     })
 
     function next() {
+      if (finished) {
+        return;
+      }
+      if (count++ >= maxCount) {
+        return complete()
+      }
       let rate = 0
       for (let i = 0; i < parallel; i++) {
         const thread = threads[i]
@@ -48,23 +57,23 @@ export function createStat(caseCreator: CaseCreator) {
         }
         if (!value) { continue }
         const {size, duration} = value
-        rate += size / (duration + 0.001) * 1000
+        if (duration !== 0) {
+          rate += size / duration * 1000
+        }
       }
 
       sub.next(rate)
     }
 
     function complete() {
-      for (const thread of threads) {
-        if (thread) {
-          thread.next(false)
-        }
-      }
+      stop()
+
+      sub.complete()
     }
 
     function setup(i: number) {
       if (i >= parallel) {
-        timer.subscribe({next, complete})
+        timerSub = timer.subscribe({next})
         return;
       }
 
@@ -79,6 +88,19 @@ export function createStat(caseCreator: CaseCreator) {
       }
     }
 
+    function stop() {
+      finished = true
+      if (timerSub) {
+        timerSub.unsubscribe()
+        timerSub = undefined
+      }
+      for (const thread of threads) {
+        thread.next(false)
+      }
+    }
+
     setup(0)
+
+    sub.add(stop)
   })
 }

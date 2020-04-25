@@ -23,6 +23,7 @@ export function *fetchDownload(count = 10): Generator<DownloadProgressStat, Down
   let loaded = 0
   let total = -1
   let finished = false
+  const abort = new AbortController()
 
   function getRate() {
     let totalTime = 0
@@ -44,11 +45,12 @@ export function *fetchDownload(count = 10): Generator<DownloadProgressStat, Down
 
   fetch(`${BASE_URL}/download?count=${count}`, {
     method: 'get',
+    signal: abort.signal
   }).then(async resp => {
     // IMPROVE
     total = parseInt(resp.headers.get('content-length')!, 10)
-    time = performance.now()
     const reader = resp.body?.getReader()
+    time = performance.now()
     for(;;) {
       const data = await reader?.read()
       if (!data) {
@@ -63,7 +65,8 @@ export function *fetchDownload(count = 10): Generator<DownloadProgressStat, Down
       const duration = now - time
 
       progresses.push({size, duration})
-      total += size
+      // total += size
+      loaded += size
       time = now
 
       if (done) {
@@ -85,7 +88,7 @@ export function *fetchDownload(count = 10): Generator<DownloadProgressStat, Down
     ret = yield getRate()
   } while(ret)
   finished = true
-  // TODO: cancel
+  abort.abort()
 
   return {} as any
 }

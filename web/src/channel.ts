@@ -3,7 +3,7 @@ import { Observable, Subscriber, Subscribable, Subscription } from "rxjs"
 type WorkerExportedModule = Record<any, (...args: any[]) => any>
 
 export class HostChannel<Module extends WorkerExportedModule> {
-  private id = 0
+  private id = 1
   private listeners: Record<number, (...args: any[]) => any> = {}
 
   constructor(public worker: Worker) {
@@ -136,6 +136,4 @@ export class WorkerChannel<Module extends WorkerExportedModule> {
       delete this.subs[id]
     }
   }
-
-
 }

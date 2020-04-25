@@ -7,6 +7,9 @@ bootstrap:
 run-server:
 	cd server && go run .
 
+run-web:
+	cd web && npm start
+
 build-server: build-assets
 	cd server && CGO_ENABLED=0 go build -ldflags "-X main.ENV=production" -o ../build/server ./
 
