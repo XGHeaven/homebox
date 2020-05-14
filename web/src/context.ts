@@ -4,5 +4,6 @@ import type { ChannelModule } from './worker'
 import { rateFormatters, RateFormatter } from "./utils";
 
 export const ChannelContext = createContext<() => Promise<HostChannel<ChannelModule>>>(null as any)
+export const ChannelsContext = createContext<() => Promise<HostChannel<ChannelModule>[]>>(null as any)
 
 export const RateFormatterContext = createContext<RateFormatter>(rateFormatters.bit)
