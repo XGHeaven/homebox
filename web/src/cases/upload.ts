@@ -16,6 +16,7 @@ export const xhrUpload: CaseCreator = function*(count = 64) {
   let processes: Array<ProgressStat> = []
   let loaded = 0
   let time = 0
+  let finishedTime = Infinity
   const total = count * 1024 * 1024
 
   function getRate() {
@@ -46,6 +47,7 @@ export const xhrUpload: CaseCreator = function*(count = 64) {
   }
   xhr.upload.onloadend = () => {
     finished = true
+    finishedTime = performance.now()
   }
 
   xhr.send(data)
@@ -61,7 +63,7 @@ export const xhrUpload: CaseCreator = function*(count = 64) {
     }
   }
 
-  return {} as any
+  return {duration: performance.now() - finishedTime, size: -1, loaded, total}
 }
 
 export const upload = createStat(xhrUpload)

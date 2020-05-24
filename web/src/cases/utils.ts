@@ -12,7 +12,6 @@ export interface StatObservableOptions {
   interval?: number,
   parallel?: number,
   packCount?: number,
-  packSize?: number,
   setupDelay?: number
 }
 
@@ -23,7 +22,6 @@ export function createStat(caseCreator: CaseCreator) {
   parallel = 3,
   // 64M
   packCount = 64,
-  packSize = 1024,
   setupDelay = 50
   }: StatObservableOptions): Observable<number> => new Observable<number>(sub => {
     const maxCount = Math.floor(maxDuration / checkInterval)
@@ -50,12 +48,23 @@ export function createStat(caseCreator: CaseCreator) {
       let rate = 0
       for (let i = 0; i < parallel; i++) {
         const thread = threads[i]
+
+        if (!thread) { return; }
+
         const { value, done } = thread.next(true)
         if (done) {
-          threads[i] = caseCreator(packCount)
-          threads[i].next(true)
+          threads[i] = null as any
+          if (finished) {
+            continue
+          }
+          const { duration } = value
+          const delay = duration < setupDelay ? setupDelay - duration : (duration - setupDelay) * (Math.random())
+          setTimeout(() => {
+            threads[i] = caseCreator(packCount)
+            threads[i].next(true)
+          }, delay)
+          continue;
         }
-        if (!value) { continue }
         const {size, duration} = value
         if (duration !== 0) {
           rate += size / duration * 1000

@@ -20,7 +20,14 @@ export function CaseRunner(props: {
   rateRef.current = rates
 
   const onMultiClick = async () => {
+    if (running) {
+      sub.current?.unsubscribe()
+      sub.current = null
+      setRunning(false)
+      return;
+    }
     setRates([])
+    setRunning(true)
     const channels = await createChannels()
     let count = 0
     sub.current = zip(...channels.map(channel => channel.observe(props.name, {packCount, duration, interval: 300, parallel}))).subscribe({

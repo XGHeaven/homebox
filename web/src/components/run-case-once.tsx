@@ -62,7 +62,7 @@ export function RunCaseOnce() {
           duration,
           packCount,
           parallel,
-          interval: 500,
+          interval: 300,
         })
       )
     ).subscribe(
@@ -78,7 +78,7 @@ export function RunCaseOnce() {
               duration,
               packCount,
               parallel,
-              interval: 500,
+              interval: 300,
             })
           )
         ).subscribe(

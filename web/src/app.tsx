@@ -7,12 +7,10 @@ import styled from '@emotion/styled'
 import { Global, css } from '@emotion/core'
 import { ChannelsContext, ConfigContext } from './context'
 import { CaseRunner } from './components/case-runner'
-import { Ping } from './components/ping'
 import { CaseConfig } from './components/case-config'
 import { DEFAULT_CONFIG } from './const'
 import { RunCaseOnce } from './components/run-case-once'
 import { LightTheme } from './styles/theme'
-import { Var, ThemeVar } from './styles/variable'
 import { $globalStyle } from './styles/global'
 
 const $Container = styled.div`
