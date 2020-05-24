@@ -1,7 +1,8 @@
 import { ProgressBar, IProgressBarProps, Tag, setHotkeysDialogProps } from "@blueprintjs/core";
 import { css } from "@emotion/core";
 import { memo, useContext } from "react";
-import { RateFormatterContext } from "../context";
+import { ConfigContext } from "../context";
+import { rateFormatters } from "../utils";
 
 const K = 1024
 const SPEED_SPANS = [64, 128, 256, 512, 1024, 2 * K, 4 * K, 8 * K, 16 * K, 32 * K, 1024 * K].map(v => v * K)
@@ -11,7 +12,8 @@ export const SpeedIndicator = memo(function SpeedIndicator({speed, running = fal
   speed?: number
   running?: boolean
 }) {
-  const formatter = useContext(RateFormatterContext)
+  const { unit } = useContext(ConfigContext)
+  const formatter = rateFormatters[unit]
   const pbp: IProgressBarProps = {}
   if (typeof speed === 'number') {
     const i = SPEED_SPANS.findIndex(v => v >= speed)

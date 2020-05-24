@@ -1,4 +1,4 @@
-import { Observable, Subscriber, Subscribable, Subscription } from "rxjs"
+import { Observable, Subscription } from "rxjs"
 
 type WorkerExportedModule = Record<any, (...args: any[]) => any>
 
@@ -68,6 +68,10 @@ export class HostChannel<Module extends WorkerExportedModule> {
     })
 
     return obs as any
+  }
+
+  terminate() {
+    this.worker.terminate()
   }
 
   private onmessage = ({data}: MessageEvent) => {

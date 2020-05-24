@@ -13,3 +13,27 @@ export enum RunningMode {
   // 持续测速
   CONTINUE = 'continue'
 }
+
+export enum SpeedMode {
+  LOW = 'low',
+  HIGH = 'high'
+}
+
+export enum CampactMode {
+  NO_COMPACT = 'no-compact',
+  COMPACT = 'compact'
+}
+
+export enum RateUnit {
+  BIT = 'bit',
+  BYTE = 'byte'
+}
+
+export interface Config {
+  speedMode: SpeedMode
+  threadCount: number
+  packCount: number
+  unit: RateUnit
+  duration: number
+  parallel: number
+}

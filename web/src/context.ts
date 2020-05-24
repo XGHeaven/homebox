@@ -1,9 +1,9 @@
 import { createContext } from "react";
 import { HostChannel } from "./channel";
 import type { ChannelModule } from './worker'
-import { rateFormatters, RateFormatter } from "./utils";
+import { Config } from "./types";
+import { DEFAULT_CONFIG } from "./const";
 
-export const ChannelContext = createContext<() => Promise<HostChannel<ChannelModule>>>(null as any)
 export const ChannelsContext = createContext<() => Promise<HostChannel<ChannelModule>[]>>(null as any)
 
-export const RateFormatterContext = createContext<RateFormatter>(rateFormatters.bit)
+export const ConfigContext = createContext<Config>(DEFAULT_CONFIG)

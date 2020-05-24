@@ -13,7 +13,7 @@ var (
 )
 
 const (
-	READ_PACK_SIZE  = 1 * 1024
+	READ_PACK_SIZE  = 1 * 1024 * 1024
 	WRITE_PACK_SIZE = 1 * 1024 * 1024
 )
 
@@ -36,12 +36,16 @@ func main() {
 		})
 	}
 
-	r.OPTIONS("/upload", func(c *gin.Context) {
+	r.Use(func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
 	})
 
+	r.OPTIONS("/upload", func(c *gin.Context) {
+	//	c.Header("Access-Control-Allow-Origin", "*")
+	})
+
 	r.POST("/upload", func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
+		//c.Header("Access-Control-Allow-Origin", "*")
 		body := c.Request.Body
 		data := make([]byte, READ_PACK_SIZE)
 		length := 0
@@ -69,7 +73,7 @@ func main() {
 	})
 
 	r.GET("/download", func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
+		//c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
 		c.Header("Content-Disposition", "attachment; filename=random.dat")
 		c.Header("Content-Transfer-Encoding", "binary")
@@ -96,6 +100,7 @@ func main() {
 	})
 
 	r.GET("/ping", func(c *gin.Context) {
+		//c.Header("Access-Control-Allow-Origin", "*")
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})

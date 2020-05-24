@@ -37,7 +37,6 @@ export const xhrUpload: CaseCreator = function*(count = 64) {
     time = performance.now()
   }
   xhr.upload.onprogress = e => {
-    console.log(e.loaded, e.lengthComputable, e.total)
     const size = e.loaded - loaded
     const now = performance.now()
     const duration = now - time
