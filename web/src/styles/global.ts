@@ -6,7 +6,7 @@ export const $globalStyle = css`
 html, body {
   padding: 0;
   margin: 0;
-  background: ${Var(ThemeVar.FrontendColor)}
+  background: ${Var(ThemeVar.BackendColor)}
 }
 
 body {

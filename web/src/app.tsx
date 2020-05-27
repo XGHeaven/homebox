@@ -10,8 +10,9 @@ import { CaseRunner } from './components/case-runner'
 import { CaseConfig } from './components/case-config'
 import { DEFAULT_CONFIG } from './const'
 import { RunCaseOnce } from './components/run-case-once'
-import { LightTheme } from './styles/theme'
+import { LightTheme, DarkTheme } from './styles/theme'
 import { $globalStyle } from './styles/global'
+import { Theme } from './types'
 
 const $Container = styled.div`
   padding: 12px 24px;
@@ -46,7 +47,7 @@ export function App() {
     channelsRef.current = new Array(config.threadCount).fill(0).map(() => new HostChannel(createWorker()))
     return channelsRef.current
   }, [config.threadCount])
-  const $theme = useMemo(() => css(LightTheme), [])
+  const $theme = useMemo(() => css(config.theme === Theme.Dark ? DarkTheme : LightTheme), [config.theme])
 
   return (
       <ChannelsContext.Provider value={createChannels}>
@@ -54,7 +55,7 @@ export function App() {
           <Global
             styles={[$globalStyle, css`body { ${$theme} }`]}
           />
-          <$Container>
+          <$Container className={config.theme === Theme.Dark ? 'bp3-dark' : ''}>
             <CaseConfig defaultValue={config} onChange={setConfig}/>
             {config.duration !== Infinity ? <RunCaseOnce/> : (
               <div css={css`

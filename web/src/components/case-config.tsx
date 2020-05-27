@@ -8,8 +8,9 @@ import {
   Button,
   ButtonGroup,
   Collapse,
+  Icon,
 } from "@blueprintjs/core";
-import { RunningMode, SpeedMode, Config, RateUnit } from "../types";
+import { RunningMode, SpeedMode, Config, RateUnit, Theme } from "../types";
 import { css } from "@emotion/core";
 import { Var, ThemeVar } from "../styles/variable";
 import styled from "@emotion/styled";
@@ -18,7 +19,16 @@ const $Header = styled.div`
   display: flex;
   flex-direction: row;
   margin-bottom: 24px;
+  align-items: center;
 `;
+
+const $HeaderLeft = styled.div`
+  flex: auto;
+`
+
+const $HeaderRight = styled.div`
+  flex: none;
+`
 
 const $mgr8 = css`
   margin-right: 8px;
@@ -274,6 +284,7 @@ export function CaseConfig(props: {
           ? 10
           : (defaultValue?.duration ?? 10 * 1000) / 1000
       ),
+      theme: createFormField(defaultValue?.theme ?? Theme.Light, {})
     });
 
     group.whenChanged((nv, ov) => {
@@ -295,6 +306,7 @@ export function CaseConfig(props: {
           unit: nv.unit,
           duration:
             nv.runningMode === RunningMode.ONCE ? nv.duration * 1000 : Infinity,
+            theme: nv.theme
         });
       }
     });
@@ -310,10 +322,12 @@ export function CaseConfig(props: {
     duration,
     unit,
     parallel,
+    theme
   } = form.fields;
   return (
     <div>
       <$Header>
+        <$HeaderLeft>
         <ButtonGroup css={$mgr8}>
           <Button
             intent={runningMode.value === RunningMode.ONCE ? "success" : "none"}
@@ -356,6 +370,7 @@ export function CaseConfig(props: {
             B/s
           </Button>
         </ButtonGroup>
+        <ButtonGroup>
         <Button
           onClick={() => setAdvancedConfig(!isAdvancedConfig)}
           intent={isAdvancedConfig ? 'success' : 'none'}
@@ -363,6 +378,11 @@ export function CaseConfig(props: {
         >
           {isAdvancedConfig ? "切换到普通配置" : "切换到高级配置"}
         </Button>
+        </ButtonGroup>
+        </$HeaderLeft>
+        <$HeaderRight>
+        <Button intent="warning" icon={theme.value === Theme.Light ? 'moon' : 'flash'} onClick={() => theme.onChange(theme.value === Theme.Dark ? Theme.Light: Theme.Dark)} minimal/>
+        </$HeaderRight>
       </$Header>
 
       <Collapse isOpen={isAdvancedConfig}>

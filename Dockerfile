@@ -39,8 +39,8 @@ FROM alpine
 
 WORKDIR /app
 
-COPY --from=server-build /app/build/server /app/server
+EXPOSE 3300
 
-RUN ls
+COPY --from=server-build /app/build/server /app/server
 
 CMD [ "./server" ]

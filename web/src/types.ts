@@ -36,4 +36,10 @@ export interface Config {
   unit: RateUnit
   duration: number
   parallel: number
+  theme: Theme
+}
+
+export enum Theme {
+  Light = 'light',
+  Dark = 'dark'
 }
