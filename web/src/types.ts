@@ -4,29 +4,29 @@ export enum ChannelType {
   PING_TEST,
   UPLOAD_TEST,
   DOWNLOAD_TEST,
-  RUN_DOWNLOAD
+  RUN_DOWNLOAD,
 }
 
 export enum RunningMode {
   // 单次测速
   ONCE = 'once',
   // 持续测速
-  CONTINUE = 'continue'
+  CONTINUE = 'continue',
 }
 
 export enum SpeedMode {
   LOW = 'low',
-  HIGH = 'high'
+  HIGH = 'high',
 }
 
 export enum CampactMode {
   NO_COMPACT = 'no-compact',
-  COMPACT = 'compact'
+  COMPACT = 'compact',
 }
 
 export enum RateUnit {
   BIT = 'bit',
-  BYTE = 'byte'
+  BYTE = 'byte',
 }
 
 export interface Config {
@@ -41,5 +41,5 @@ export interface Config {
 
 export enum Theme {
   Light = 'light',
-  Dark = 'dark'
+  Dark = 'dark',
 }

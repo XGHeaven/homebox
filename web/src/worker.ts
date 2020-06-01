@@ -8,7 +8,7 @@ import { upload } from './cases/upload'
 const channelModule = {
   name: () => 'some name',
   download,
-  upload
+  upload,
 }
 
 export type ChannelModule = typeof channelModule

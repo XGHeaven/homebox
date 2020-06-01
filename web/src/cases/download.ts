@@ -14,10 +14,10 @@ export interface DownloadProgressStat {
   total: number
 }
 
-export function *fetchDownload(count = 10): Generator<DownloadProgressStat, DownloadProgressStat, boolean> {
+export function* fetchDownload(count = 10): Generator<DownloadProgressStat, DownloadProgressStat, boolean> {
   let time = 0
   let progresses: Array<{
-    size: number,
+    size: number
     duration: number
   }> = []
   let loaded = 0
@@ -46,18 +46,18 @@ export function *fetchDownload(count = 10): Generator<DownloadProgressStat, Down
 
   fetch(`${BASE_URL}/download?count=${count}`, {
     method: 'get',
-    signal: abort.signal
-  }).then(async resp => {
+    signal: abort.signal,
+  }).then(async (resp) => {
     // IMPROVE
     total = parseInt(resp.headers.get('content-length')!, 10)
     if (!resp.body) {
       finishedTime = performance.now()
       finished = true
-      return;
+      return
     }
     const reader = resp.body.getReader()
     time = performance.now()
-    for(;;) {
+    for (;;) {
       const data = await reader.read()
       if (!data) {
         finished = true
@@ -71,14 +71,14 @@ export function *fetchDownload(count = 10): Generator<DownloadProgressStat, Down
       const now = performance.now()
       const duration = now - time
 
-      progresses.push({size, duration})
+      progresses.push({ size, duration })
       loaded += size
       time = now
 
       if (done) {
         finished = true
         finishedTime = performance.now()
-        break;
+        break
       }
     }
 
@@ -93,19 +93,19 @@ export function *fetchDownload(count = 10): Generator<DownloadProgressStat, Down
       return getRate()
     }
     ret = yield getRate()
-  } while(ret)
+  } while (ret)
   finished = true
   abort.abort()
 
-  return {duration: performance.now() - finishedTime, size: 0, total, loaded}
+  return { duration: performance.now() - finishedTime, size: 0, total, loaded }
 }
 
-export function *xhrDownload(count: number = 10): Generator<DownloadProgressStat, DownloadProgressStat, boolean> {
+export function* xhrDownload(count: number = 10): Generator<DownloadProgressStat, DownloadProgressStat, boolean> {
   const xhr = new XMLHttpRequest()
   let start = 0
   let progressTime = performance.now()
   let progresses: Array<{
-    size: number,
+    size: number
     duration: number
   }> = []
   let loaded = 0
@@ -140,7 +140,7 @@ export function *xhrDownload(count: number = 10): Generator<DownloadProgressStat
     const current = performance.now()
     progresses.push({
       size: ev.loaded - loaded,
-      duration: current - progressTime
+      duration: current - progressTime,
     })
     loaded = ev.loaded
     total = ev.lengthComputable ? ev.total : -1
@@ -149,12 +149,16 @@ export function *xhrDownload(count: number = 10): Generator<DownloadProgressStat
 
   xhr.onload = () => {
     finished = true
-    try {xhr.abort()} catch(e) {}
+    try {
+      xhr.abort()
+    } catch (e) {}
     console.log(performance.now() - start, progressTime - start)
   }
 
   xhr.onerror = () => {
-    try {xhr.abort()} catch(e) {}
+    try {
+      xhr.abort()
+    } catch (e) {}
     finished = true
   }
 
@@ -167,10 +171,12 @@ export function *xhrDownload(count: number = 10): Generator<DownloadProgressStat
       return getStat()
     }
     ret = yield getStat()
-  } while(ret)
+  } while (ret)
 
   // TODO: 要处理强制停止的情况
-  try {xhr.abort()} catch(e) {}
+  try {
+    xhr.abort()
+  } catch (e) {}
 
   // 这里无关紧要
   return {} as any

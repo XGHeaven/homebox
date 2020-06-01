@@ -1,4 +1,4 @@
-import { RateUnit } from "./types"
+import { RateUnit } from './types'
 
 const byteUnit = ['B/s', 'KB/s', 'MB/s', 'GB/s', 'TB/s']
 const bitUnit = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps']
@@ -8,7 +8,7 @@ export function formatByteRate(rate: number) {
   let level = 0
   while (rate > rateBase) {
     rate = rate / rateBase
-    level ++
+    level++
   }
 
   return `${rate.toFixed(2)} ${byteUnit[level]}`
@@ -18,7 +18,7 @@ export function formatBitRate(rate: number) {
   let level = 0
   while (rate > rateBase) {
     rate = rate / rateBase
-    level ++
+    level++
   }
 
   return `${rate.toFixed(2)} ${bitUnit[level]}`
@@ -26,8 +26,8 @@ export function formatBitRate(rate: number) {
 
 export type RateFormatter = (rate: number) => string
 
-export const rateFormatters : Record<RateUnit, RateFormatter> = {
+export const rateFormatters: Record<RateUnit, RateFormatter> = {
   // rate mul 8 since rate unit it byte
-  bit: rate => formatBitRate(rate * 8),
-  byte: formatByteRate
+  bit: (rate) => formatBitRate(rate * 8),
+  byte: formatByteRate,
 }

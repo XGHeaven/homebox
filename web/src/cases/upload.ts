@@ -1,11 +1,11 @@
-import { CaseCreator, ProgressStat, createStat } from "./utils";
-import { BASE_URL } from "../const";
+import { CaseCreator, ProgressStat, createStat } from './utils'
+import { BASE_URL } from '../const'
 
-let blob1M = new Blob([new ArrayBuffer(1024 * 1024)])
+const blob1M = new Blob([new ArrayBuffer(1024 * 1024)])
 let blobCache: Blob
 let blobCacheCount: number
 
-export const xhrUpload: CaseCreator = function*(count = 64) {
+export const xhrUpload: CaseCreator = function* (count = 64) {
   const xhr = new XMLHttpRequest()
   if (!blobCache || blobCacheCount !== count) {
     blobCacheCount = count
@@ -29,7 +29,7 @@ export const xhrUpload: CaseCreator = function*(count = 64) {
 
     processes = []
 
-    return {size, duration, loaded, total}
+    return { size, duration, loaded, total }
   }
 
   xhr.open('POST', `${BASE_URL}/upload`)
@@ -37,11 +37,11 @@ export const xhrUpload: CaseCreator = function*(count = 64) {
   xhr.upload.onloadstart = () => {
     time = performance.now()
   }
-  xhr.upload.onprogress = e => {
+  xhr.upload.onprogress = (e) => {
     const size = e.loaded - loaded
     const now = performance.now()
     const duration = now - time
-    processes.push({size, duration})
+    processes.push({ size, duration })
     loaded = e.loaded
     time = now
   }
@@ -63,7 +63,7 @@ export const xhrUpload: CaseCreator = function*(count = 64) {
     }
   }
 
-  return {duration: performance.now() - finishedTime, size: -1, loaded, total}
+  return { duration: performance.now() - finishedTime, size: -1, loaded, total }
 }
 
 export const upload = createStat(xhrUpload)

@@ -1,7 +1,6 @@
 import '@blueprintjs/core/lib/css/blueprint.css'
 
-import React, { useCallback, useMemo } from 'react'
-import { useState, useRef } from 'react'
+import React, { useCallback, useMemo, useState, useRef } from 'react'
 import { HostChannel } from './channel'
 import styled from '@emotion/styled'
 import { Global, css } from '@emotion/core'
@@ -50,23 +49,34 @@ export function App() {
   const $theme = useMemo(() => css(config.theme === Theme.Dark ? DarkTheme : LightTheme), [config.theme])
 
   return (
-      <ChannelsContext.Provider value={createChannels}>
-        <ConfigContext.Provider value={config}>
-          <Global
-            styles={[$globalStyle, css`body { ${$theme} }`]}
-          />
-          <$Container className={config.theme === Theme.Dark ? 'bp3-dark' : ''}>
-            <CaseConfig defaultValue={config} onChange={setConfig}/>
-            {config.duration !== Infinity ? <RunCaseOnce/> : (
-              <div css={css`
-              display: flex;
-            `}>
-              <CaseRunner title="Download" name="download"/>
-              <CaseRunner title="Upload" name="upload"/>
+    <ChannelsContext.Provider value={createChannels}>
+      <ConfigContext.Provider value={config}>
+        <Global
+          styles={[
+            $globalStyle,
+            css`
+              body {
+                ${$theme}
+              }
+            `,
+          ]}
+        />
+        <$Container className={config.theme === Theme.Dark ? 'bp3-dark' : ''}>
+          <CaseConfig defaultValue={config} onChange={setConfig} />
+          {config.duration !== Infinity ? (
+            <RunCaseOnce />
+          ) : (
+            <div
+              css={css`
+                display: flex;
+              `}
+            >
+              <CaseRunner title='Download' name='download' />
+              <CaseRunner title='Upload' name='upload' />
             </div>
-            )}
-          </$Container>
-        </ConfigContext.Provider>
-      </ChannelsContext.Provider>
+          )}
+        </$Container>
+      </ConfigContext.Provider>
+    </ChannelsContext.Provider>
   )
 }

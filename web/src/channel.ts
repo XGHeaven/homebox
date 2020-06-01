@@ -1,4 +1,4 @@
-import { Observable, Subscription } from "rxjs"
+import { Observable, Subscription } from 'rxjs'
 
 type WorkerExportedModule = Record<any, (...args: any[]) => any>
 
@@ -12,7 +12,7 @@ export class HostChannel<Module extends WorkerExportedModule> {
   }
 
   async call<K extends keyof Module>(name: K, ...args: Parameters<Module[K]>): Promise<ReturnType<Module[K]>> {
-    const id = this.id ++
+    const id = this.id++
     let resolve: any
     let reject: any
     const promise = new Promise<any>((res, rej) => {
@@ -20,7 +20,7 @@ export class HostChannel<Module extends WorkerExportedModule> {
       reject = rej
     })
 
-    this.listeners[id] = ({error, value}: any) => {
+    this.listeners[id] = ({ error, value }: any) => {
       if (error) {
         reject(value)
       } else {
@@ -34,14 +34,14 @@ export class HostChannel<Module extends WorkerExportedModule> {
       type: 'call',
       id,
       args,
-      name
+      name,
     })
 
     return promise
   }
 
   observe<K extends keyof Module>(name: K, ...args: Parameters<Module[K]>): ReturnType<Module[K]> {
-    const obs = new Observable(sub => {
+    const obs = new Observable((sub) => {
       const id = this.id++
       this.listeners[id] = (name: 'next' | 'error' | 'complete', value) => {
         sub[name](value)
@@ -63,7 +63,7 @@ export class HostChannel<Module extends WorkerExportedModule> {
             type: 'unobserve',
             id,
           })
-        }
+        },
       })
     })
 
@@ -74,8 +74,8 @@ export class HostChannel<Module extends WorkerExportedModule> {
     this.worker.terminate()
   }
 
-  private onmessage = ({data}: MessageEvent) => {
-    const {type, id} = data
+  private onmessage = ({ data }: MessageEvent) => {
+    const { type, id } = data
     const callback = this.listeners[id]
     if (!callback) {
       console.warn('Cannot found callback for id ' + id)
@@ -84,13 +84,16 @@ export class HostChannel<Module extends WorkerExportedModule> {
     if (type === 'call') {
       callback({
         error: data.error,
-        value: data.value
+        value: data.value,
       })
     } else if (type === 'observe') {
       callback(data.name, data.value)
     }
   }
-  private onerror = () => {}
+
+  private onerror = () => {
+    // TODO
+  }
 }
 
 export class WorkerChannel<Module extends WorkerExportedModule> {
@@ -99,43 +102,45 @@ export class WorkerChannel<Module extends WorkerExportedModule> {
     self.onmessage = this.onmessage
   }
 
-  private onmessage = ({data}: MessageEvent) => {
+  private onmessage = ({ data }: MessageEvent) => {
     const { type, id } = data
 
     if (type === 'call') {
       const { args, name } = data
-      Promise.resolve(this.mod[name](...args)).then(v => {
-        self.postMessage({
-          type: 'call',
-          id,
-          error: false,
-          value: v
+      Promise.resolve(this.mod[name](...args))
+        .then((v) => {
+          self.postMessage({
+            type: 'call',
+            id,
+            error: false,
+            value: v,
+          })
         })
-      }).catch(e => {
-        self.postMessage({
-          type: 'call',
-          id,
-          error: true,
-          value: e
+        .catch((e) => {
+          self.postMessage({
+            type: 'call',
+            id,
+            error: true,
+            value: e,
+          })
         })
-      })
     } else if (type === 'observe') {
-      const {name, args, id} = data
+      const { name, args, id } = data
       console.log(name, args, id)
       const obs = this.mod[name](...args) as Observable<any>
       this.subs[id] = obs.subscribe({
-        next: v => {
-          self.postMessage({type: 'observe', id, name: 'next', value: v})
+        next: (v) => {
+          self.postMessage({ type: 'observe', id, name: 'next', value: v })
         },
-        error: e => {
-          self.postMessage({type: 'observe', id, name: 'error', value: e})
+        error: (e) => {
+          self.postMessage({ type: 'observe', id, name: 'error', value: e })
         },
         complete: () => {
-          self.postMessage({type: 'observe', id, name: 'complete'})
-        }
+          self.postMessage({ type: 'observe', id, name: 'complete' })
+        },
       })
     } else if (type === 'unobserve') {
-      const {id} = data
+      const { id } = data
       this.subs[id].unsubscribe()
       delete this.subs[id]
     }

@@ -6,7 +6,9 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel serve ./src/index.html",
-    "build": "parcel build --no-source-maps --public-url static --detailed-report -d ../build/static ./src/index.html"
+    "build": "parcel build --no-source-maps --public-url static --detailed-report -d ../build/static ./src/index.html",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix"
   },
   "author": "XGHeaven <xgheaven@gmail.com>",
   "license": "ISC",
@@ -17,8 +19,11 @@
     "@types/node": "^13.9.3",
     "@types/react": "^16.9.25",
     "@types/react-dom": "^16.9.5",
+    "@xgheaven/eslint-config-xgheaven": "^0.3.0",
     "babel-plugin-emotion": "^10.0.33",
-    "parcel-bundler": "^1.12.4"
+    "eslint": "^7.1.0",
+    "parcel-bundler": "^1.12.4",
+    "prettier": "^2.0.5"
   },
   "dependencies": {
     "@blueprintjs/core": "^3.24.0",

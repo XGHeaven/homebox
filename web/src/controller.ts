@@ -3,7 +3,7 @@ export class TestController {
 
   constructor() {
     this.worker = new Worker('worker.ts', {
-      name: 'speedtest-worker'
+      name: 'speedtest-worker',
     })
   }
 }
