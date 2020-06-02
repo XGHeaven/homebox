@@ -66,7 +66,6 @@ export function createStat(caseCreator: CaseCreator) {
               threads[i] = caseCreator(packCount)
               threads[i].next(true)
             }, delay)
-            continue
           }
           const { size, duration } = value
           if (duration !== 0) {

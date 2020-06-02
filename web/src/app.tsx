@@ -7,11 +7,11 @@ import { Global, css } from '@emotion/core'
 import { ChannelsContext, ConfigContext } from './context'
 import { CaseRunner } from './components/case-runner'
 import { CaseConfig } from './components/case-config'
-import { DEFAULT_CONFIG } from './const'
+import { DEFAULT_CONFIG, CONFIG_STORAGE_KEY } from './const'
 import { RunCaseOnce } from './components/run-case-once'
 import { LightTheme, DarkTheme } from './styles/theme'
 import { $globalStyle } from './styles/global'
-import { Theme } from './types'
+import { Theme, Config } from './types'
 
 const $Container = styled.div`
   padding: 12px 24px;
@@ -25,7 +25,19 @@ function createWorker() {
 
 export function App() {
   const channelsRef = useRef<HostChannel<any>[] | null>(null)
-  const [config, setConfig] = useState(DEFAULT_CONFIG)
+  const storageConfig = useMemo(() => {
+    const data = localStorage.getItem(CONFIG_STORAGE_KEY)
+    try {
+      const parsedConfig = Object.assign({}, DEFAULT_CONFIG, JSON.parse(data || '{}'))
+      if (parsedConfig.duration === null) {
+        parsedConfig.duration = Infinity
+      }
+      return parsedConfig
+    } catch (e) {
+      return DEFAULT_CONFIG
+    }
+  }, [])
+  const [config, setConfig] = useState(storageConfig)
   const createChannels = useCallback(async () => {
     const { threadCount } = config
     if (channelsRef.current) {
@@ -48,6 +60,11 @@ export function App() {
   }, [config.threadCount])
   const $theme = useMemo(() => css(config.theme === Theme.Dark ? DarkTheme : LightTheme), [config.theme])
 
+  function handleConfigChange(newConfig: Config) {
+    localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(newConfig))
+    setConfig(newConfig)
+  }
+
   return (
     <ChannelsContext.Provider value={createChannels}>
       <ConfigContext.Provider value={config}>
@@ -62,7 +79,7 @@ export function App() {
           ]}
         />
         <$Container className={config.theme === Theme.Dark ? 'bp3-dark' : ''}>
-          <CaseConfig defaultValue={config} onChange={setConfig} />
+          <CaseConfig defaultValue={config} onChange={handleConfigChange} />
           {config.duration !== Infinity ? (
             <RunCaseOnce />
           ) : (

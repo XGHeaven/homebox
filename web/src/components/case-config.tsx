@@ -1,15 +1,5 @@
-import { useState, useRef, useMemo, Fragment } from 'react'
-import {
-  NumericInput,
-  FormGroup,
-  RadioGroup,
-  Radio,
-  Slider,
-  Button,
-  ButtonGroup,
-  Collapse,
-  Icon,
-} from '@blueprintjs/core'
+import { useState, useRef, useMemo } from 'react'
+import { NumericInput, FormGroup, RadioGroup, Radio, Slider, Button, ButtonGroup, Collapse } from '@blueprintjs/core'
 import { RunningMode, SpeedMode, Config, RateUnit, Theme } from '../types'
 import { css } from '@emotion/core'
 import { Var, ThemeVar } from '../styles/variable'
