@@ -101,6 +101,7 @@ func main() {
 
 	r.GET("/ping", func(c *gin.Context) {
 		//c.Header("Access-Control-Allow-Origin", "*")
+		c.Writer.Flush()
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})

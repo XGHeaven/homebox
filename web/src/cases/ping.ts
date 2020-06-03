@@ -5,5 +5,6 @@ export const ping = async () => {
   const now = performance.now()
   await resp.text()
   const time = performance.now() - now
-  return time
+  // rtt is twice
+  return time * 2
 }
