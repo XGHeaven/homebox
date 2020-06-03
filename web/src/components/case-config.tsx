@@ -262,7 +262,11 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
     group.whenChanged((nv, ov) => {
       if (nv.speedRange !== ov.speedRange) {
         if (nv.speedRange === SpeedMode.HIGH) {
-          group.fields.threadCount.onChange(3)
+          let concurrency = navigator.hardwareConcurrency ?? 4
+          if (concurrency > 1) {
+            concurrency -= 1
+          }
+          group.fields.threadCount.onChange(concurrency)
         } else {
           group.fields.threadCount.onChange(1)
         }
@@ -377,7 +381,7 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
             <FormGroup
               label='Thread Count'
               key='threadCount'
-              helperText='测速 Worker 数量，根据你的机器性能适当选择。一般来说 3 个足够满足万兆网络测速'
+              helperText='测速 Worker 数量，根据你的机器性能适当选择。一般来说 3 个足够满足万兆网络测速。低速模式下，默认为 1 个，高速模式下，默认为系统逻辑处理器数量 - 1'
             >
               <Slider min={1} max={8} value={threadCount.value} onChange={threadCount.onChange} />
             </FormGroup>
