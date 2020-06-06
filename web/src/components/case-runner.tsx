@@ -5,7 +5,7 @@ import { css } from '@emotion/core'
 import { SpeedIndicator } from './speed-indicator'
 import { Subscription, zip } from 'rxjs'
 
-export function CaseRunner(props: { name: 'upload' | 'download'; title: string }) {
+export function CaseRunner(props: { name: 'upload' | 'download' | 'downloadFiber' | 'uploadFiber'; title: string }) {
   const createChannels = useContext(ChannelsContext)
   const { duration, packCount, parallel } = useContext(ConfigContext)
   const [rates, setRates] = useState<number[]>([])

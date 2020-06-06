@@ -1,5 +1,6 @@
-import { createStat } from './utils'
+import { createStat, createFiber, createFiberGroup } from './utils'
 import { BASE_URL } from '../const'
+import { Observable } from 'rxjs'
 
 export interface DownloadProgressStat {
   // 当前分片下载的大小
@@ -27,8 +28,7 @@ export function* fetchDownload(count = 10): Generator<DownloadProgressStat, Down
   function getRate() {
     let totalTime = 0
     let totalSize = 0
-    let i = progresses.length - 1
-    for (i = 0; i < progresses.length; i++) {
+    for (let i = 0; i < progresses.length; i++) {
       totalTime += progresses[i].duration
       totalSize += progresses[i].size
     }
@@ -181,3 +181,45 @@ export function* xhrDownload(count: number = 10): Generator<DownloadProgressStat
 }
 
 export const download = createStat(fetchDownload)
+
+export const fiberDownload = createFiber((count = 16) => {
+  return new Observable((sub) => {
+    const abort = new AbortController()
+    fetch(`${BASE_URL}/download?count=${count}`, {
+      method: 'get',
+      signal: abort.signal,
+    })
+      .then(async (resp) => {
+        // IMPROVE
+        if (!resp.body) {
+          return Promise.reject(new Error('request body is empty'))
+        }
+        const reader = resp.body.getReader()
+        sub.next(-1)
+        for (;;) {
+          const data = await reader.read()
+          const { value, done } = data
+
+          sub.next(value?.length ?? 0)
+
+          if (done) {
+            break
+          }
+        }
+      })
+      .then(() => {
+        sub.complete()
+      })
+      .catch((e) => {
+        sub.error(e)
+      })
+
+    sub.add({
+      unsubscribe() {
+        abort.abort()
+      },
+    })
+  })
+})
+
+export const downloadFiber = createFiberGroup(fiberDownload)

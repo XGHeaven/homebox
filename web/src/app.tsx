@@ -88,8 +88,8 @@ export function App() {
                 display: flex;
               `}
             >
-              <CaseRunner title='Download' name='download' />
-              <CaseRunner title='Upload' name='upload' />
+              <CaseRunner title='Download' name='downloadFiber' />
+              <CaseRunner title='Upload' name='uploadFiber' />
             </div>
           )}
         </$Container>
