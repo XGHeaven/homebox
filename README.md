@@ -8,7 +8,7 @@
 
 - 面向未来浏览器设计
 - 高达 10G 的浏览器速度测试
-- 自带 Ping/Jitter 检测
+- 自带 Ping 检测
 - 丰富的自定义测速参数
 - 低硬件要求，无需固态
 - 友好的 UI 交互
@@ -16,9 +16,9 @@
 
 ## Screenshot
 
-[dark-theme](./doc/dark-theme.png)
+![dark-theme](./doc/dark-theme.png)
 
-[light-theme](./doc/light-theme.png)
+![light-theme](./doc/light-theme.png)
 
 ## Tests
 
