@@ -13,91 +13,6 @@ export interface DownloadProgressStat {
   total: number
 }
 
-export function* fetchDownload(count = 10): Generator<DownloadProgressStat, DownloadProgressStat, boolean> {
-  let time = 0
-  let progresses: Array<{
-    size: number
-    duration: number
-  }> = []
-  let loaded = 0
-  let total = -1
-  let finished = false
-  let finishedTime = Infinity
-  const abort = new AbortController()
-
-  function getRate() {
-    let totalTime = 0
-    let totalSize = 0
-    for (let i = 0; i < progresses.length; i++) {
-      totalTime += progresses[i].duration
-      totalSize += progresses[i].size
-    }
-    progresses = []
-
-    return {
-      size: totalSize,
-      duration: totalTime,
-      total,
-      loaded,
-    }
-  }
-
-  fetch(`${BASE_URL}/download?count=${count}`, {
-    method: 'get',
-    signal: abort.signal,
-  }).then(async (resp) => {
-    // IMPROVE
-    total = parseInt(resp.headers.get('content-length')!, 10)
-    if (!resp.body) {
-      finishedTime = performance.now()
-      finished = true
-      return
-    }
-    const reader = resp.body.getReader()
-    time = performance.now()
-    for (;;) {
-      const data = await reader.read()
-      if (!data) {
-        finished = true
-        finishedTime = performance.now()
-        break
-      }
-
-      const { value, done } = data
-
-      const size = value?.length ?? 0
-      const now = performance.now()
-      const duration = now - time
-
-      progresses.push({ size, duration })
-      loaded += size
-      time = now
-
-      if (done) {
-        finished = true
-        finishedTime = performance.now()
-        break
-      }
-    }
-
-    if (finished) {
-      reader?.cancel()
-    }
-  })
-
-  let ret = true
-  do {
-    if (finished) {
-      return getRate()
-    }
-    ret = yield getRate()
-  } while (ret)
-  finished = true
-  abort.abort()
-
-  return { duration: performance.now() - finishedTime, size: 0, total, loaded }
-}
-
 export function* xhrDownload(count: number = 10): Generator<DownloadProgressStat, DownloadProgressStat, boolean> {
   const xhr = new XMLHttpRequest()
   let start = 0
@@ -180,8 +95,6 @@ export function* xhrDownload(count: number = 10): Generator<DownloadProgressStat
   return {} as any
 }
 
-export const download = createStat(fetchDownload)
-
 export const fiberDownload = createFiber((count = 16) => {
   return new Observable((sub) => {
     const abort = new AbortController()
@@ -222,4 +135,4 @@ export const fiberDownload = createFiber((count = 16) => {
   })
 })
 
-export const downloadFiber = createFiberGroup(fiberDownload)
+export const download = createFiberGroup(fiberDownload)

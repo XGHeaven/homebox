@@ -5,37 +5,27 @@ import { css } from '@emotion/core'
 import { SpeedIndicator } from './speed-indicator'
 import { Subscription, zip } from 'rxjs'
 
-export function CaseRunner(props: { name: 'upload' | 'download' | 'downloadFiber' | 'uploadFiber'; title: string }) {
+export function CaseRunner(props: { name: 'upload' | 'download'; title: string }) {
   const createChannels = useContext(ChannelsContext)
   const { duration, packCount, parallel } = useContext(ConfigContext)
-  const [rates, setRates] = useState<number[]>([])
+  const [rate, setRate] = useState(-1)
   const [running, setRunning] = useState(false)
-  const rate = rates.reduce((a, r) => a + r, 0) / (rates.length + Number.MIN_VALUE)
-  const rateRef = useRef(rates)
   const sub = useRef<Subscription | null>(null)
-  rateRef.current = rates
 
-  const onMultiClick = async () => {
+  const onClick = async () => {
     if (running) {
       sub.current?.unsubscribe()
       sub.current = null
       setRunning(false)
       return
     }
-    setRates([])
     setRunning(true)
     const channels = await createChannels()
     sub.current = zip(
       ...channels.map((channel) => channel.observe(props.name, { packCount, duration, interval: 300, parallel })),
     ).subscribe({
       next(rate) {
-        // console.log(...rate, ++count)
-        const newRates = [...rateRef.current, rate.reduce((a, b) => a + b, 0)]
-        if (newRates.length > 20) {
-          newRates.shift()
-        }
-
-        setRates(newRates)
+        setRate(rate.reduce((a, b) => a + b, 0))
       },
       error(e) {
         console.error(e)
@@ -59,8 +49,8 @@ export function CaseRunner(props: { name: 'upload' | 'download' | 'downloadFiber
       `}
     >
       <h3>{props.title}</h3>
-      <SpeedIndicator speed={rates.length ? rate : undefined} running={running} />
-      <Button onClick={onMultiClick}>{!running ? 'Start' : 'Stop'}</Button>
+      <SpeedIndicator speed={rate === -1 ? undefined : rate} running={running} />
+      <Button onClick={onClick}>{!running ? 'Start' : 'Stop'}</Button>
     </div>
   )
 }

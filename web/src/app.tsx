@@ -12,6 +12,7 @@ import { RunCaseOnce } from './components/run-case-once'
 import { LightTheme, DarkTheme } from './styles/theme'
 import { $globalStyle } from './styles/global'
 import { Theme, Config } from './types'
+import { Footer } from './components/footer'
 
 const $Container = styled.div`
   padding: 12px 24px;
@@ -88,10 +89,11 @@ export function App() {
                 display: flex;
               `}
             >
-              <CaseRunner title='Download' name='downloadFiber' />
-              <CaseRunner title='Upload' name='uploadFiber' />
+              <CaseRunner title='Download' name='download' />
+              <CaseRunner title='Upload' name='upload' />
             </div>
           )}
+          <Footer />
         </$Container>
       </ConfigContext.Provider>
     </ChannelsContext.Provider>

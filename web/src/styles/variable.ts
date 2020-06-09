@@ -3,6 +3,7 @@ export enum ThemeVar {
   BackendColor = '--backend-color',
 
   ConfigPanelBgColor = '--config-panel-background-color',
+  FooterColor = '--footer-color',
 }
 
 export function Var(varName: string, defaultValue?: any) {

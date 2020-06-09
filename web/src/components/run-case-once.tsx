@@ -3,12 +3,12 @@ import styled from '@emotion/styled'
 import { useState, useContext } from 'react'
 import { useRates } from '../hooks'
 import { ChannelsContext, ConfigContext } from '../context'
-import { zip, interval, from, pipe } from 'rxjs'
+import { zip, interval, from } from 'rxjs'
 import { rateFormatters } from '../utils'
 import { Button } from '@blueprintjs/core'
 import { $textCenter, $mgt } from '../styles/utils'
 import { css } from '@emotion/core'
-import { take, map, mergeMap } from 'rxjs/operators'
+import { take, mergeMap } from 'rxjs/operators'
 import { ping } from '../cases/ping'
 
 const $Header = styled.div`
@@ -37,35 +37,28 @@ enum RunningStep {
 }
 
 export function RunCaseOnce() {
-  const [dlRate, pushDlRate, clearDlRate] = useRates(20)
-  const [ulRate, pushUlRate, clearUlRate] = useRates(20)
+  const [dlRate, setDlRate] = useState(-1)
+  const [ulRate, setUlRate] = useState(-1)
   const [ttl, pushTTL, clearTTL] = useRates(5)
   const [step, setStep] = useState(RunningStep.NONE)
   const createChannels = useContext(ChannelsContext)
   const { duration, parallel, packCount, unit } = useContext(ConfigContext)
 
   const start = async () => {
-    clearDlRate()
-    clearUlRate()
     clearTTL()
     setStep(RunningStep.PING)
-    await new Promise((resolve, reject) => {
-      interval(300)
-        .pipe(
-          take(10),
-          mergeMap(() => from(ping())),
-        )
-        .subscribe(
-          (v) => {
-            pushTTL(v)
-          },
-          reject,
-          resolve,
-        )
-    })
+    await interval(300)
+      .pipe(
+        take(10),
+        mergeMap(() => ping()),
+      )
+      .forEach((v) => {
+        pushTTL(v)
+      })
     const channels = await createChannels()
+
     setStep(RunningStep.DOWNLOAD)
-    zip(
+    await zip(
       ...channels.map((channel) =>
         channel.observe('download', {
           duration,
@@ -74,33 +67,26 @@ export function RunCaseOnce() {
           interval: 300,
         }),
       ),
-    ).subscribe(
-      (v) => {
-        pushDlRate(v.reduce((a, b) => a + b, 0))
-      },
-      console.error,
-      () => {
-        setStep(RunningStep.UPLOAD)
-        zip(
-          ...channels.map((channel) =>
-            channel.observe('upload', {
-              duration,
-              packCount,
-              parallel,
-              interval: 300,
-            }),
-          ),
-        ).subscribe(
-          (v) => {
-            pushUlRate(v.reduce((a, b) => a + b, 0))
-          },
-          console.error,
-          () => {
-            setStep(RunningStep.DONE)
-          },
-        )
-      },
-    )
+    ).forEach((v) => {
+      setDlRate(v.reduce((a, b) => a + b, 0))
+    })
+
+    setStep(RunningStep.UPLOAD)
+
+    await zip(
+      ...channels.map((channel) =>
+        channel.observe('upload', {
+          duration,
+          packCount,
+          parallel,
+          interval: 300,
+        }),
+      ),
+    ).forEach((v) => {
+      setUlRate(v.reduce((a, b) => a + b, 0))
+    })
+
+    setStep(RunningStep.DONE)
   }
 
   return (

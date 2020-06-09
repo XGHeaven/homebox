@@ -4,6 +4,7 @@ import { RunningMode, SpeedMode, Config, RateUnit, Theme } from '../types'
 import { css } from '@emotion/core'
 import { Var, ThemeVar } from '../styles/variable'
 import styled from '@emotion/styled'
+import { $valm } from '../styles/utils'
 
 const $Header = styled.div`
   display: flex;
@@ -294,7 +295,7 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
     <div>
       <$Header>
         <$HeaderLeft>
-          <ButtonGroup css={$mgr8}>
+          <ButtonGroup css={css`${$mgr8}${$valm}`}>
             <Button
               intent={runningMode.value === RunningMode.ONCE ? 'success' : 'none'}
               onClick={() => runningMode.onChange(RunningMode.ONCE)}
@@ -310,7 +311,7 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
               持续压测
             </Button>
           </ButtonGroup>
-          <ButtonGroup css={$mgr8}>
+          <ButtonGroup css={css`${$mgr8}${$valm}`}>
             <Button
               title='Bit per second'
               intent={unit.value === RateUnit.BIT ? 'success' : 'none'}
@@ -328,7 +329,7 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
               B/s
             </Button>
           </ButtonGroup>
-          <ButtonGroup>
+          <ButtonGroup css={$valm}>
             <Button
               onClick={() => setAdvancedConfig(!isAdvancedConfig)}
               intent={isAdvancedConfig ? 'success' : 'none'}
