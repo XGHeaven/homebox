@@ -14,6 +14,12 @@
 - 友好的 UI 交互
 - 针对低速网络(< 2.5G)优化测速资源占用
 
+## Screenshot
+
+[dark-theme](./doc/dark-theme.png)
+
+[light-theme](./doc/light-theme.png)
+
 ## Tests
 
 - 在 2017 款 13 寸 Macbook 上，低速配置下能够实现 4G 下载速度以及 3G 上传速度
