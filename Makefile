@@ -6,7 +6,7 @@ bootstrap:
 
 bootstrap-build:
 	cd server && go mod download
-	cd web && npm ci
+	cd web && npm i
 
 run-server:
 	cd server && go run .

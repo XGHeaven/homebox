@@ -28,7 +28,6 @@ jobs:
       run: |
         echo "Node version:" $(node -v)
         echo "Npm version:" $(npm -v)
-        ls web/node_modules/@babel/compat-data
         make build-web
         export PATH=$PATH:$(go env GOPATH)/bin
         make build-assets
