@@ -23,6 +23,9 @@ jobs:
       run: |
         export PATH=$PATH:$(go env GOPATH)/bin
         go get -u github.com/go-bindata/go-bindata/...
+        echo $PATH
+        echo $(go env GOPATH)
+        echo "go-bindata version:" $(go-bindata -version)
     - name: Build frontend assets
       run: |
         echo "Node version:" $(node -v)
