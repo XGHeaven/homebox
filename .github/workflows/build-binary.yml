@@ -20,5 +20,6 @@ jobs:
     - name: Build all arch binary
       run: |
         make bootstrap-build
+        go get -u github.com/go-bindata/go-bindata/...
         make build-assets
         mkae build-all-arch
