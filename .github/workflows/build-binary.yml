@@ -20,9 +20,13 @@ jobs:
     - name: Bootstrap
       run: make bootstrap-build
     - name: Install go-bindata
-      run: go get -u github.com/go-bindata/go-bindata/...
+      run: |
+        export PATH=$PATH:$(go env GOPATH)/bin
+        go get -u github.com/go-bindata/go-bindata/...
     - name: Build frontend assets
       run: |
+        echo "Node version:" $(node -v)
+        echo "Npm version:" $(npm -v)
         make build-web
         make build-assets
     - name: Build all arch binary
