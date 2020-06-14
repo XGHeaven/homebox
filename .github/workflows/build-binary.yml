@@ -17,9 +17,13 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: Build all arch binary
+    - name: Prepare Deps
       run: |
         make bootstrap-build
         go get -u github.com/go-bindata/go-bindata/...
+    - name: Build frontend assets
+      run: |
+        make build-web
         make build-assets
-        mkae build-all-arch
+    - name: Build all arch binary
+      run: mkae build-all-arch
