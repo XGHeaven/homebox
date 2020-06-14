@@ -20,10 +20,8 @@ jobs:
     - name: Bootstrap
       run: |
         cd server
-        ls
         go mod download
         cd ../web
-        ls
         rm -f package-lock.json
         npm i --registry=https://registry.npmjs.org/
     - name: Install go-bindata
@@ -40,3 +38,8 @@ jobs:
         make build-assets
     - name: Build all arch binary
       run: make build-all-arch
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        path: build/arch/

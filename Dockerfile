@@ -14,9 +14,9 @@ FROM node:lts as web-build-env
 
 WORKDIR /app
 
-COPY web/package* ./web/
+COPY web/package.json ./web/
 
-RUN cd web && npm ci --registry=https://registry.npm.taobao.org
+RUN cd web && npm i
 
 FROM web-build-env AS web-build
 

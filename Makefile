@@ -29,7 +29,7 @@ build-dev-assets:
 build: build-web build-server
 
 build-arch:
-	cd server && GOSO=$(OS) GOARCH=$(ARCH) CGO_ENABLED=0 go build -ldflags "-X main.ENV=production" -o ../build/server-$(OS)-$(ARCH)$(EXT) ./
+	cd server && GOSO=$(OS) GOARCH=$(ARCH) CGO_ENABLED=0 go build -ldflags "-X main.ENV=production" -o ../build/arch/server-$(OS)-$(ARCH)$(EXT) ./
 
 build-all-arch: build-darwin build-window build-linux build-android
 
