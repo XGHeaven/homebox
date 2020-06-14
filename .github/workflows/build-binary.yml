@@ -33,4 +33,4 @@ jobs:
         export PATH=$PATH:$(go env GOPATH)/bin
         make build-assets
     - name: Build all arch binary
-      run: mkae build-all-arch
+      run: make build-all-arch
