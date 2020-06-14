@@ -18,7 +18,14 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Bootstrap
-      run: make bootstrap-build
+      run: |
+        cd server
+        ls
+        go mod download
+        cd ../web
+        ls
+        rm -f package-lock.json
+        npm i --registry=https://registry.npmjs.org/
     - name: Install go-bindata
       run: |
         export PATH=$PATH:$(go env GOPATH)/bin
