@@ -29,18 +29,18 @@ build-dev-assets:
 build: build-web build-server
 
 build-arch:
-	cd server && GOSO=$(OS) GOARCH=$(ARCH) CGO_ENABLED=0 go build -ldflags "-X main.ENV=production" -o ../build/arch/server-$(OS)-$(ARCH)$(EXT) ./
+	cd server && GOOS=$(OS) GOARCH=$(ARCH) CGO_ENABLED=0 go build -ldflags "-X main.ENV=production" -o ../build/arch/server-$(OS)-$(ARCH)$(EXT) ./
 
 pack-arch:
 	bash ./script/pack-arch.sh $(TAG)
 
-build-all-arch: build-darwin build-window build-linux build-android
+build-all-arch: build-darwin build-window build-linux
 
 build-darwin:
 	make build-arch OS=darwin ARCH=amd64
 
 build-window:
-	make build-arch OS=window ARCH=amd64 EXT=.exe
+	make build-arch OS=windows ARCH=amd64 EXT=.exe
 
 build-linux:
 	make build-arch OS=linux ARCH=amd64
