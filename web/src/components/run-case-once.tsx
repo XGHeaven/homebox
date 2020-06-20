@@ -18,7 +18,7 @@ const $Header = styled.div`
 const $HeaderCase = styled.div`
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  flex: 1;
   text-align: center;
 `
 

@@ -8,6 +8,7 @@ export const $globalStyle = css`
     padding: 0;
     margin: 0;
     background: ${Var(ThemeVar.BackendColor)};
+    font-variant-numeric: tabular-nums;
   }
 
   body {
