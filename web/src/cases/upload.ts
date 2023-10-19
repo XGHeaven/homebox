@@ -15,7 +15,8 @@ const fiberUpload = createFiber(
         blobCache = new Blob(new Array(count).fill(blob1M))
       }
       const data = blobCache
-      let loaded = 0
+      let loadedBytes = 0
+      let loaded = false
 
       xhr.open('POST', `${BASE_URL}/upload`)
 
@@ -24,21 +25,25 @@ const fiberUpload = createFiber(
       }
 
       xhr.upload.onprogress = (e) => {
-        const size = e.loaded - loaded
-        loaded = e.loaded
+        const size = e.loaded - loadedBytes
+        loadedBytes = e.loaded
+        console.log('loaded bytes', e.loaded, size)
         sub.next(size)
       }
 
       xhr.upload.onloadend = () => {
+        loaded = true
         sub.complete()
       }
 
-      xhr.upload.onerror = (e) => sub.error(e)
-      xhr.onerror = (e) => sub.error(e)
+      xhr.upload.onerror = (e) => (sub.error(e), console.log(e))
+      xhr.onerror = (e) => (sub.error(e), console.log(e))
 
       sub.add({
         unsubscribe() {
-          xhr.abort()
+          if (!loaded) {
+            xhr.abort()
+          }
         },
       })
 

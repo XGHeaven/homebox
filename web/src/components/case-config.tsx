@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from 'react'
 import { NumericInput, FormGroup, RadioGroup, Radio, Slider, Button, ButtonGroup, Collapse } from '@blueprintjs/core'
 import { RunningMode, SpeedMode, Config, RateUnit, Theme } from '../types'
-import { css } from '@emotion/core'
+import { css } from '@emotion/react'
 import { Var, ThemeVar } from '../styles/variable'
 import styled from '@emotion/styled'
 import { $valm } from '../styles/utils'

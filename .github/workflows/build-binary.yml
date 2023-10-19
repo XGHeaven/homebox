@@ -19,15 +19,8 @@ jobs:
 
     - name: Bootstrap
       run: |
-        cd server
-        go mod download
-        cd ../web
-        rm -f package-lock.json
-        npm i --registry=https://registry.npmjs.org/
-    - name: Install go-bindata
-      run: |
         export PATH=$PATH:$(go env GOPATH)/bin
-        go get -u github.com/go-bindata/go-bindata/...
+        make bootstrap
         echo "go-bindata version:" $(go-bindata -version)
     - name: Build frontend assets
       run: |

@@ -1,4 +1,4 @@
-import { createStat, createFiber, createFiberGroup } from './utils'
+import { createFiber, createFiberGroup } from './utils'
 import { BASE_URL } from '../const'
 import { Observable } from 'rxjs'
 

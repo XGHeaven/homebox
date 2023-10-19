@@ -1,7 +1,7 @@
 import React, { useContext, useRef, useState } from 'react'
 import { Button } from '@blueprintjs/core'
 import { ChannelsContext, ConfigContext } from '../context'
-import { css } from '@emotion/core'
+import { css } from '@emotion/react'
 import { SpeedIndicator } from './speed-indicator'
 import { Subscription, zip } from 'rxjs'
 

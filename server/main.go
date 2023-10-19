@@ -4,6 +4,7 @@ import (
 	"io"
 	"strconv"
 	"time"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,9 @@ const (
 
 func main() {
 	isProd := ENV == "production"
+	if isProd {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 
 	if isProd {
@@ -107,5 +111,7 @@ func main() {
 		})
 	})
 
+	fmt.Println("Listened on :3300")
+	
 	r.Run(":3300")
 }

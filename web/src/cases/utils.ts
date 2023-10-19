@@ -1,4 +1,4 @@
-import { Observable, interval, Subscription, Subject } from 'rxjs'
+import { Observable, interval, Subscription } from 'rxjs'
 
 // tcp 大约会损耗 3%
 const fixFactor = 1.03

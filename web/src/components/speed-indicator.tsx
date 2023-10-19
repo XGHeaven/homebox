@@ -1,5 +1,5 @@
-import { ProgressBar, IProgressBarProps, Tag, setHotkeysDialogProps } from '@blueprintjs/core'
-import { css } from '@emotion/core'
+import { ProgressBar, ProgressBarProps, Tag } from '@blueprintjs/core'
+import { css } from '@emotion/react'
 import { memo, useContext } from 'react'
 import { ConfigContext } from '../context'
 import { rateFormatters } from '../utils'
@@ -17,7 +17,7 @@ export const SpeedIndicator = memo(function SpeedIndicator({
 }) {
   const { unit } = useContext(ConfigContext)
   const formatter = rateFormatters[unit]
-  const pbp: IProgressBarProps = {}
+  const pbp: ProgressBarProps = {}
   if (typeof speed === 'number') {
     const i = SPEED_SPANS.findIndex((v) => v >= speed)
     if (i === -1) {

@@ -5,37 +5,32 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "parcel serve ./src/index.html",
-    "build": "parcel build --no-source-maps --public-url static --detailed-report -d ../build/static ./src/index.html",
+    "start": "rspack serve",
+    "build": "rspack build",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix"
   },
   "author": "XGHeaven <xgheaven@gmail.com>",
   "license": "ISC",
   "devDependencies": {
-    "@babel/core": "^7.10.2",
-    "@babel/plugin-transform-runtime": "^7.10.1",
-    "@babel/preset-react": "^7.10.1",
-    "@types/node": "^13.9.3",
-    "@types/react": "^16.9.25",
-    "@types/react-dom": "^16.9.5",
+    "@rspack/cli": "^0.3.7",
+    "@types/node": "^20.8.7",
+    "@types/react": "^18.2.29",
+    "@types/react-dom": "^18.2.13",
     "@xgheaven/eslint-config-xgheaven": "^0.3.0",
-    "babel-plugin-emotion": "^10.0.33",
     "eslint": "^7.1.0",
-    "parcel-bundler": "^1.12.4",
-    "prettier": "^2.0.5"
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@blueprintjs/core": "^3.24.0",
-    "@emotion/babel-preset-css-prop": "^10.0.27",
-    "@emotion/core": "^10.0.28",
-    "@emotion/styled": "^10.0.27",
-    "core-js": "^3.6.5",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
+    "@blueprintjs/core": "^5.5.1",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "core-js": "^3.33.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "regenerator-runtime": "^0.13.3",
-    "rxjs": "^6.5.4",
-    "typescript": "^3.8.3"
+    "rxjs": "^6.5.4"
   },
   "browserslist": [
     "Chrome >= 58",

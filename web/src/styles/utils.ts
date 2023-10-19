@@ -1,4 +1,4 @@
-import { css } from '@emotion/core'
+import { css } from '@emotion/react'
 import { UI_UNIT_PX } from './const'
 
 export const $textCenter = css`

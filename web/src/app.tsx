@@ -3,7 +3,7 @@ import '@blueprintjs/core/lib/css/blueprint.css'
 import React, { useCallback, useMemo, useState, useRef } from 'react'
 import { HostChannel } from './channel'
 import styled from '@emotion/styled'
-import { Global, css } from '@emotion/core'
+import { Global, css } from '@emotion/react'
 import { ChannelsContext, ConfigContext } from './context'
 import { CaseRunner } from './components/case-runner'
 import { CaseConfig } from './components/case-config'
@@ -21,7 +21,9 @@ const $Container = styled.div`
   height: 100%;
 `
 function createWorker() {
-  return new Worker('./worker.ts')
+  return new Worker(new URL('./worker.ts', import.meta.url), {
+    name: 'speedtest-worker'
+  })
 }
 
 export function App() {
@@ -79,7 +81,7 @@ export function App() {
             `,
           ]}
         />
-        <$Container className={config.theme === Theme.Dark ? 'bp3-dark' : ''}>
+        <$Container className={config.theme === Theme.Dark ? 'bp5-dark' : ''}>
           <CaseConfig defaultValue={config} onChange={handleConfigChange} />
           {config.duration !== Infinity ? (
             <RunCaseOnce />
