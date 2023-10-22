@@ -1,4 +1,4 @@
-name: build-binary
+name: Release Action
 
 on:
   push:
