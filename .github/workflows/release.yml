@@ -5,18 +5,18 @@ on:
     tags:
       - "v*"
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  build-binary:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-
+    - name: Print env
+      run: |
+        corepack enable
+        echo "go version:" $(go version)
+        echo "node version:" $(node -v)
+        echo "npm version:" $(npm -v)
+        echo "pnpm version:" $(pnpm -v)
     - name: Bootstrap
       run: |
         export PATH=$PATH:$(go env GOPATH)/bin
@@ -24,17 +24,29 @@ jobs:
         echo "go-bindata version:" $(go-bindata -version)
     - name: Build frontend assets
       run: |
-        echo "Node version:" $(node -v)
-        echo "Npm version:" $(npm -v)
         make build-web
         export PATH=$PATH:$(go env GOPATH)/bin
         make build-assets
     - name: Build all arch binary
       run: make build-all-arch
-
     - name: Upload to Release
       run: |
-        curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
         make pack-arch TAG=${{ github.ref }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Login
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Build and Push
+      uses: docker/build-push-action@v5
+      with:
+        push: true
+        tags: xgheaven/homebox:latest
+        context: .
