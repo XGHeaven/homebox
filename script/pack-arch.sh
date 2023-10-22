@@ -12,7 +12,7 @@ assets=( )
 cd ../pack
 for file in *; do
   echo $file
-  assets+=("-a" "$file")
+  assets+=("$file")
 done
 
 gh release create "${tag##*/}" --notes-from-tag "${assets[@]}"
