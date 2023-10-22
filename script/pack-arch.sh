@@ -15,4 +15,4 @@ for file in *; do
   assets+=("-a" "$file")
 done
 
-hub release create "${assets[@]}" -m "${tag##*/}" "${tag##*/}"
+gh release create "${tag##*/}" --notes-from-tag "${assets[@]}"

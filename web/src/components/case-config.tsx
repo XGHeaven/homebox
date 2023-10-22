@@ -253,7 +253,7 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
       speedRange: createFormField(defaultValue?.speedMode ?? SpeedMode.LOW, {}),
       packCount: createFormField(defaultValue?.packCount ?? 64, {}),
       parallel: createFormField(defaultValue?.parallel ?? 3, {}),
-      unit: createFormField(defaultValue?.unit ?? RateUnit.BIT),
+      unit: createFormField(defaultValue?.unit ?? RateUnit.BYTE),
       duration: createFormField(
         defaultValue?.duration === Infinity ? 10 : (defaultValue?.duration ?? 10 * 1000) / 1000,
       ),
@@ -313,20 +313,20 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
           </ButtonGroup>
           <ButtonGroup css={css`${$mgr8}${$valm}`}>
             <Button
-              title='Bit per second'
-              intent={unit.value === RateUnit.BIT ? 'success' : 'none'}
-              onClick={() => unit.onChange(RateUnit.BIT)}
-              icon={unit.value === RateUnit.BIT ? 'small-tick' : undefined}
-            >
-              b/s
-            </Button>
-            <Button
               title='Byte per second'
               intent={unit.value === RateUnit.BYTE ? 'success' : 'none'}
               onClick={() => unit.onChange(RateUnit.BYTE)}
               icon={unit.value === RateUnit.BYTE ? 'small-tick' : undefined}
             >
               B/s
+            </Button>
+            <Button
+              title='Bit per second'
+              intent={unit.value === RateUnit.BIT ? 'success' : 'none'}
+              onClick={() => unit.onChange(RateUnit.BIT)}
+              icon={unit.value === RateUnit.BIT ? 'small-tick' : undefined}
+            >
+              b/s
             </Button>
           </ButtonGroup>
           <ButtonGroup css={$valm}>
