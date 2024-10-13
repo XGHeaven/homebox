@@ -11,13 +11,14 @@
     "lint:fix": "eslint src --fix"
   },
   "author": "XGHeaven <xgheaven@gmail.com>",
-  "license": "ISC",
+  "packageManager": "pnpm@8.9.2",
+  "license": "MIT",
   "devDependencies": {
     "@rspack/cli": "^0.3.7",
     "@types/node": "^20.8.7",
     "@types/react": "^18.2.29",
     "@types/react-dom": "^18.2.13",
-    "@xgheaven/eslint-config-xgheaven": "^0.3.0",
+    "@xgheaven/eslint-config-xgheaven": "^0.4.0",
     "eslint": "^7.1.0",
     "prettier": "^3.0.3",
     "typescript": "^5.2.2"

@@ -38,6 +38,7 @@ build-all-arch: build-darwin build-window build-linux
 
 build-darwin:
 	make build-arch OS=darwin ARCH=amd64
+	make build-arch OS=darwin ARCH=arm64
 
 build-window:
 	make build-arch OS=windows ARCH=amd64 EXT=.exe
