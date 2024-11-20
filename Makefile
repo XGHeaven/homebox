@@ -1,56 +1,46 @@
 bootstrap: bootstrap-web bootstrap-server
 
 bootstrap-web:
-	cd web && pnpm install
+	cd web && pnpm install --frozen-lockfile
 
 bootstrap-server:
-	go install github.com/go-bindata/go-bindata/...@v3
-	cd server && go mod download
+	# cd server && cargo check
 
 run-server:
-	cd server && go run .
+	cd server && cargo run
 
 run-web:
-	cd web && npm start
+	cd web && pnpm start
 
-build-server: build-assets
-	cd server && CGO_ENABLED=0 go build -ldflags "-X main.ENV=production" -o ../build/server ./
+build-server:
+	cd server && HOMEBOX_ENV=production cargo build --locked --release
 
 build-web:
 	cd web && pnpm run build
 
-build-assets:
-	go-bindata -fs -o server/assets.go -prefix build/static build/static
-
-build-dev-assets:
-	# go-bindata -fs -debug -o server/assets.go -prefix build/static build/static
-	go-bindata -fs -o server/assets.go -prefix build/static build/static
-
 build: build-web build-server
 
 build-arch:
-	cd server && GOOS=$(OS) GOARCH=$(ARCH) CGO_ENABLED=0 go build -ldflags "-X main.ENV=production" -o ../build/arch/server-$(OS)-$(ARCH)$(EXT) ./
+	rustup target add $(TARGET)
+	rustup toolchain install stable-$(TARGET)
+	cd server && HOMEBOX_ENV=production cargo build --locked --release --target $(TARGET)
+	mkdir -p build/arch
+	cp server/target/$(TARGET)/release/homebox build/arch/homebox-$(FILE)
 
 pack-arch:
 	bash ./script/pack-arch.sh $(TAG)
 
-build-all-arch: build-darwin build-window build-linux
+build-all-arch: build-darwin build-windows build-linux build-android
 
 build-darwin:
-	make build-arch OS=darwin ARCH=amd64
-	make build-arch OS=darwin ARCH=arm64
+	make build-arch TARGET=aarch64-apple-darwin FILE=darwin-arm64
+	make build-arch TARGET=x86_64-apple-darwin FILE=darwin-amd64
 
-build-window:
-	make build-arch OS=windows ARCH=amd64 EXT=.exe
+build-windows:
+	make build-arch TARGET=x86_64-pc-windows-msvc FILE=windows-amd64.exe
+	make build-arch TARGET=i686-pc-windows-msvc FILE=windows-386.exe
 
 build-linux:
-	make build-arch OS=linux ARCH=amd64
-	make build-arch OS=linux ARCH=arm
-	make build-arch OS=linux ARCH=arm64
-	make build-arch OS=linux ARCH=mips
-	make build-arch OS=linux ARCH=386
-
-build-android:
-	make build-arch OS=android ARCH=amd64
-	make build-arch OS=android ARCH=arm
-	make build-arch OS=android ARCH=386
+	make build-arch TARGET=x86_64-unknown-linux-gnu FILE=linux-amd64
+	make build-arch TARGET=aarch64-unknown-linux-gnu FILE=linux-arm64
+	make build-arch TARGET=i686-unknown-linux-gnu FILE=linux-386

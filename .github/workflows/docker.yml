@@ -1,4 +1,4 @@
-name: Release Action
+name: Docker
 
 env:
   REGISTRY_IMAGE: xgheaven/homebox
@@ -9,35 +9,6 @@ on:
       - "v*"
 
 jobs:
-  build-binary:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Print env
-        run: |
-          corepack enable
-          echo "go version:" $(go version)
-          echo "node version:" $(node -v)
-          echo "npm version:" $(npm -v)
-          echo "pnpm version:" $(pnpm -v)
-      - name: Bootstrap
-        run: |
-          export PATH=$PATH:$(go env GOPATH)/bin
-          make bootstrap
-          echo "go-bindata version:" $(go-bindata -version)
-      - name: Build frontend assets
-        run: |
-          make build-web
-          export PATH=$PATH:$(go env GOPATH)/bin
-          make build-assets
-      - name: Build all arch binary
-        run: make build-all-arch
-      - name: Upload to Release
-        run: |
-          make pack-arch TAG=${{ github.ref }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   build-image:
     runs-on: ubuntu-latest
     strategy:
@@ -52,7 +23,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV          
-        
+
       - name: Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login

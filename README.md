@@ -41,7 +41,16 @@ docker run -d -p 3300:3300 --name homebox xgheaven/homebox
 
 直接在 [Release](https://github.com/XGHeaven/homebox/releases) 下载对应版本即可。
 
-解压之后直接执行编译好的二进制文件，各个平台的执行方式应该不用我教了吧。
+解压之后直接执行 serve 命令即可启动服务，参数如下
+
+```text
+Usage: homebox serve [OPTIONS]
+
+Options:
+      --port <PORT>  Port to listen
+      --host <HOST>  Host to listen
+  -h, --help         Print help
+```
 
 ## Usage
 
@@ -82,10 +91,11 @@ docker run -d -p 3300:3300 --name homebox xgheaven/homebox
 - 在 2017 款 13 寸 Macbook 上，低速配置下能够实现 4G 下载速度以及 3G 上传速度
 - 在 2019 款 16 寸 Macbook 上，在开启高速模式下，最高可以达到 12G 的下载速度以及 10G 的上传速度
 - 在 AMD 3600 的设备上，高速模式下可以达到 15G 的下载速度以及 12G 的上传速度
+- 在 M2 Macbook Air 的设备上，低速模式可以达到 20G 的下载速度以及 16G 的上传速度，不建议开启高速模式，会导致资源调度竞争从而数值下降且不稳定
 
 ## Powered by
 
-- Golang(gin) 服务端
+- Rust(actix-web) 服务端
 - TypeScript 前端语言
 - React 前端框架
 - Rspack 前端打包工具

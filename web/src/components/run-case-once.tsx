@@ -56,7 +56,7 @@ export function RunCaseOnce() {
   const _start = async () => {
     clearTTL()
     setStep(RunningStep.PING)
-    await interval(300)
+    await interval(500)
       .pipe(
         take(10),
         mergeMap(() => ping()),
@@ -73,7 +73,7 @@ export function RunCaseOnce() {
           duration,
           packCount,
           parallel,
-          interval: 300,
+          interval: 500,
         }),
       ),
     ).forEach((v) => {
@@ -88,7 +88,7 @@ export function RunCaseOnce() {
           duration,
           packCount,
           parallel,
-          interval: 300,
+          interval: 500,
         }),
       ),
     ).forEach((v) => {

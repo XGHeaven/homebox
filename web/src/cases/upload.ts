@@ -27,7 +27,6 @@ const fiberUpload = createFiber(
       xhr.upload.onprogress = (e) => {
         const size = e.loaded - loadedBytes
         loadedBytes = e.loaded
-        console.log('loaded bytes', e.loaded, size)
         sub.next(size)
       }
 
