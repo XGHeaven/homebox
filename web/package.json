@@ -11,7 +11,7 @@
     "lint:fix": "eslint src --fix"
   },
   "author": "XGHeaven <xgheaven@gmail.com>",
-  "packageManager": "pnpm@8.9.2",
+  "packageManager": "pnpm@9.12.2",
   "license": "MIT",
   "devDependencies": {
     "@rspack/cli": "^0.3.7",
