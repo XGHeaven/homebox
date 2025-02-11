@@ -61,11 +61,18 @@ jobs:
             file: linux-arm64
             tool: gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
           - runner: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            file: linux-arm64-musl
+            tool: musl-tools clang llvm gcc-multilib
+          - runner: ubuntu-latest
             target: i686-unknown-linux-gnu
             file: linux-386
             tool: gcc-multilib
     env:
       CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+      CC_aarch64_unknown_linux_musl: clang
+      AR_aarch64_unknown_linux_musl: llvm-ar
+      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_RUSTFLAGS: "-Clink-self-contained=yes -Clinker=rust-lld"
     steps:
       - uses: actions/checkout@v4
       - name: Print env
