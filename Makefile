@@ -22,7 +22,8 @@ build: build-web build-server
 
 build-arch:
 	rustup target add $(TARGET)
-	rustup toolchain install stable-$(TARGET)
+	# New version rustup is not neccessary to install the toolchain
+	# rustup toolchain install stable-$(TARGET)
 	cd server && HOMEBOX_ENV=production cargo build --locked --release --target $(TARGET)
 	mkdir -p build/arch
 	cp server/target/$(TARGET)/release/homebox build/arch/homebox-$(FILE)
