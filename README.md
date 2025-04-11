@@ -93,6 +93,35 @@ Options:
 - 在 AMD 3600 的设备上，高速模式下可以达到 15G 的下载速度以及 12G 的上传速度
 - 在 M2 Macbook Air 的设备上，低速模式可以达到 20G 的下载速度以及 16G 的上传速度，不建议开启高速模式，会导致资源调度竞争从而数值下降且不稳定
 
+## FAQ
+
+### 如何选择合适的下载版本
+
+一般来说命名主要有 `<os>-<arch>` 决定。
+
+其中 `<os>` 一般是可以选择 `windows`/`darwin`(MacOS)/`linux`，字面意思，不做过多解释。
+
+而 `<arch>` 可以这样理解
+
+- `arm64` 就是 arm 机器，大部分手机和部分部分笔记本选择
+- `amd64` 就是 Intel 和 AMD 家的 64 位处理器（不要问为啥叫 AMD64 而不是 Intel64，问就是谁出的早谁命名，大部分台式机和笔记本和服务器选择这个就可以
+- `386` 一般是 32 位机器，目前基本上不会用到
+
+### 为什么我下载的文件无法运行
+
+大部分情况是你下载错格式了，如果不知道如何正确选择就全都下载下来一个个尝试，总能可以的。
+如果还不行，就提交 issue 把。
+
+### 为什么 openwrt 无法运行 arm64 格式的
+
+如果你的 openwrt 运行后突然有类似如下报错：
+
+```shell
+homebox-linux-arm64: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=9ae3c92ff31299b4b4cad04dda85694ecc9a6c65, for GNU/Linux 3.7.0, not stripped
+```
+
+则可以尝试使用 arm64-musl 格式而非 arm64 文件
+
 ## Powered by
 
 - Rust(actix-web) 服务端
