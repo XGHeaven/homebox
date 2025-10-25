@@ -34,10 +34,15 @@ struct ServeArgs {
 }
 
 #[get("/ping")]
-async fn ping() -> impl Responder {
+async fn ping_get() -> impl Responder {
     HttpResponse::Ok()
         .content_type(ContentType::json())
         .body("{\"message\": \"pong\"}")
+}
+
+#[head("/ping")]
+async fn ping_head() -> impl Responder {
+    HttpResponse::NoContent().finish()
 }
 
 #[derive(Deserialize)]
@@ -125,7 +130,8 @@ async fn main() -> std::io::Result<()> {
                     .service(download)
                     .service(upload)
                     .service(upload_options)
-                    .service(ping)
+                    .service(ping_get)
+                    .service(ping_head)
                     .service(static_resource)
                     .service(index)
             });
