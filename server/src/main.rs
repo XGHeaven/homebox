@@ -1,13 +1,14 @@
+use actix_web::web::Bytes;
 use actix_web::{
     get, head, http::header::ContentType, middleware, options, post, web, App, Error, HttpRequest,
     HttpResponse, HttpServer, Responder,
 };
 use clap::{command, Args, Parser, Subcommand};
-use futures::{stream::poll_fn, task::Poll, StreamExt};
+use futures::{stream::iter, StreamExt};
 use include_dir::{include_dir, Dir};
 use mime_guess::mime;
 use serde::Deserialize;
-use std::path::PathBuf;
+use std::{path::PathBuf, time::Duration};
 
 const WRITE_PACK_SIZE: usize = 1 * 1024 * 1024;
 
@@ -53,7 +54,7 @@ struct DownloadQuery {
 
 #[get("/download")]
 async fn download(query: web::Query<DownloadQuery>) -> impl Responder {
-    let mut count = query
+    let count = query
         .count
         .clone()
         .and_then(|s| s.parse::<usize>().ok())
@@ -63,30 +64,27 @@ async fn download(query: web::Query<DownloadQuery>) -> impl Responder {
         .clone()
         .and_then(|s| s.parse::<usize>().ok())
         .unwrap_or(WRITE_PACK_SIZE);
-    let vecs = vec![0; size];
 
-    let stream = poll_fn(move |_| -> Poll<Option<Result<web::Bytes, Error>>> {
-        if count > 0 {
-            count -= 1;
-            Poll::Ready(Some(Ok(web::Bytes::from(vecs.clone()))))
-        } else {
-            Poll::Ready(None)
-        }
-    });
+    // OPTIMIZE: Pre-allocate all chunks upfront, avoid clone in stream
+    // Each chunk is independent, allowing zero-copy streaming
+    let chunks: Vec<Bytes> = (0..count).map(|_| Bytes::from(vec![0u8; size])).collect();
+
     HttpResponse::Ok()
+        .content_type("application/octet-stream")
         .append_header((
             "Cache-Control",
             "no-store, no-cache, must-revalidate, max-age=0",
         ))
         .append_header(("Content-Disposition", "attachment; filename=random.dat"))
         .append_header(("Content-Transfer-Encoding", "binary"))
-        .streaming(stream)
+        .streaming(iter(chunks).map(Ok::<_, Error>))
 }
 
 #[post("/upload")]
 async fn upload(mut body: web::Payload) -> impl Responder {
-    while let Some(chunk) = body.next().await {
-        let _ = chunk;
+    // OPTIMIZE: Consume stream efficiently without unnecessary processing
+    while let Some(_chunk) = body.next().await {
+        // Chunk is automatically dropped, TCP backpressure is handled by actix
     }
     HttpResponse::Ok().finish()
 }
@@ -122,6 +120,7 @@ async fn main() -> std::io::Result<()> {
 
     match &cli.command {
         Comamnds::Serve(args) => {
+            // OPTIMIZE: Configure worker count and connection pool for high throughput
             let server = HttpServer::new(|| {
                 App::new()
                     .wrap(
@@ -134,7 +133,10 @@ async fn main() -> std::io::Result<()> {
                     .service(ping_head)
                     .service(static_resource)
                     .service(index)
-            });
+            })
+            .workers(4) // Use 4 workers for better concurrency
+            .max_connections(2048) // Increase max concurrent connections
+            .keep_alive(Duration::from_secs(60)); // Keep connections alive for 60s
 
             let server_bind_address = format!(
                 "{}:{}",
