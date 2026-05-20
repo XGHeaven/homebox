@@ -99,11 +99,11 @@ export function RunCaseOnce() {
   }
 
   const start = () => {
-    _start().catch(err => {
+    _start().catch(() => {
       showToast({
         message: `Error, Please check environment`,
         intent: Intent.DANGER,
-        icon: "warning-sign",
+        icon: 'warning-sign',
       })
       setStep(RunningStep.DONE)
     })
@@ -131,7 +131,11 @@ export function RunCaseOnce() {
         speed={step === RunningStep.DOWNLOAD ? dlRate : step === RunningStep.UPLOAD ? ulRate : undefined}
         running={step !== RunningStep.DONE && step !== RunningStep.NONE}
       />
-      <div css={css`${$textCenter}${$mgt[4]}`}>
+      <div
+        css={css`
+          ${$textCenter}${$mgt[4]}
+        `}
+      >
         <Button onClick={start} disabled={step !== RunningStep.NONE && step !== RunningStep.DONE}>
           {RunningStepLabels[step]}
         </Button>

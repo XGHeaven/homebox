@@ -35,8 +35,14 @@ const fiberUpload = createFiber(
         sub.complete()
       }
 
-      xhr.upload.onerror = (e) => (sub.error(e), console.log(e))
-      xhr.onerror = (e) => (sub.error(e), console.log(e))
+      xhr.upload.onerror = (e) => {
+        sub.error(e)
+        console.log(e)
+      }
+      xhr.onerror = (e) => {
+        sub.error(e)
+        console.log(e)
+      }
 
       sub.add({
         unsubscribe() {

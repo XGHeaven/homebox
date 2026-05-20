@@ -4,8 +4,9 @@ export const BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://loc
 export const CONFIG_STORAGE_KEY = 'homebox:config'
 
 const systemTheme = (() => {
-  if (typeof window !== 'undefined' && window.matchMedia) {
-    const ret = window.matchMedia('(prefers-color-scheme: dark)')
+  const matchMedia = (globalThis as { matchMedia?: (query: string) => { matches: boolean } }).matchMedia
+  if (matchMedia) {
+    const ret = matchMedia('(prefers-color-scheme: dark)')
     if (ret.matches) {
       return Theme.Dark
     }

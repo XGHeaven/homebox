@@ -47,20 +47,10 @@ interface FormObjectGroup<T extends FormFields> extends FormFieldBase<FormFields
   fields: T
 }
 
-interface FormArrayGroup<T> extends FormFieldBase<T> {
-  type: 'array'
-  fields: FormField<T>[]
-}
-
 type FormFields = Record<string | number, FormFieldBase<any>>
 
 type FormFieldsValue<F extends FormFields> = {
   [K in keyof F]: F[K] extends FormFieldBase<infer T> ? T : never
-}
-
-interface Form<F extends FormFields> {
-  fields: F
-  values: FormFieldsValue<F>
 }
 
 interface FormFieldConfig<T> {
@@ -74,30 +64,6 @@ function getValuesFromFields<T extends FormFields = FormFields>(fields: T): Form
     values[key as any] = field.value
     return values
   }, {} as FormFieldsValue<T>)
-}
-
-function createForm<F extends FormFields>(fields: F): Form<F> {
-  let cacheValues = getValuesFromFields(fields)
-  let dirtyValues = false
-
-  const fieldsArray = Object.values(fields)
-
-  for (const field of fieldsArray) {
-    field.whenChanged(() => {
-      dirtyValues = true
-    })
-  }
-
-  return {
-    fields,
-    get values() {
-      if (dirtyValues) {
-        cacheValues = getValuesFromFields(fields)
-        dirtyValues = false
-      }
-      return cacheValues as FormFieldsValue<F>
-    },
-  }
 }
 
 function createFormField<T>(initial: T, config: FormFieldConfig<T> = {}): FormField<T> {
@@ -166,7 +132,7 @@ function createFormField<T>(initial: T, config: FormFieldConfig<T> = {}): FormFi
   }
 }
 
-function createFormObjectGroup<T extends FormFields>(fields: T, config: FormFieldConfig<T> = {}): FormObjectGroup<T> {
+function createFormObjectGroup<T extends FormFields>(fields: T): FormObjectGroup<T> {
   type V = FormFieldsValue<T>
   const initial = getValuesFromFields<T>(fields)
   let cacheValues = initial
@@ -242,7 +208,7 @@ function createFormObjectGroup<T extends FormFields>(fields: T, config: FormFiel
 }
 
 export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config) => void }) {
-  const [_, setCount] = useState(0)
+  const [, setCount] = useState(0)
   const onChangeRef = useRef(props.onChange)
   onChangeRef.current = props.onChange
   const form = useMemo(() => {
@@ -295,7 +261,11 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
     <div>
       <$Header>
         <$HeaderLeft>
-          <ButtonGroup css={css`${$mgr8}${$valm}`}>
+          <ButtonGroup
+            css={css`
+              ${$mgr8}${$valm}
+            `}
+          >
             <Button
               intent={runningMode.value === RunningMode.ONCE ? 'success' : 'none'}
               onClick={() => runningMode.onChange(RunningMode.ONCE)}
@@ -311,7 +281,11 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
               持续压测
             </Button>
           </ButtonGroup>
-          <ButtonGroup css={css`${$mgr8}${$valm}`}>
+          <ButtonGroup
+            css={css`
+              ${$mgr8}${$valm}
+            `}
+          >
             <Button
               title='Byte per second'
               intent={unit.value === RateUnit.BYTE ? 'success' : 'none'}

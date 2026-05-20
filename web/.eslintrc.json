@@ -1,6 +1,9 @@
 {
-  "extends": [
-    "@xgheaven/eslint-config-xgheaven",
-    "@xgheaven/eslint-config-xgheaven/typescript"
-  ]
+  "extends": ["@xgheaven/eslint-config-xgheaven", "@xgheaven/eslint-config-xgheaven/typescript"],
+  "rules": {
+    "no-use-before-define": "off",
+    "n/no-callback-literal": "off",
+    "n/handle-callback-err": "off",
+    "@typescript-eslint/no-explicit-any": "off"
+  }
 }

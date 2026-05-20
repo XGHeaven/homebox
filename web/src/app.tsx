@@ -22,7 +22,7 @@ const $Container = styled.div`
 `
 function createWorker() {
   return new Worker(new URL('./worker.ts', import.meta.url), {
-    name: 'speedtest-worker'
+    name: 'speedtest-worker',
   })
 }
 

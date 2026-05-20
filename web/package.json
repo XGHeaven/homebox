@@ -8,7 +8,10 @@
     "start": "rspack serve",
     "build": "rspack build",
     "lint": "eslint src",
-    "lint:fix": "eslint src --fix"
+    "lint:fix": "eslint src --fix",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.worker.json",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src"
   },
   "author": "XGHeaven <xgheaven@gmail.com>",
   "packageManager": "pnpm@9.12.2",
@@ -18,19 +21,20 @@
     "@types/node": "^20.8.7",
     "@types/react": "^18.2.29",
     "@types/react-dom": "^18.2.13",
-    "@xgheaven/eslint-config-xgheaven": "^0.4.0",
-    "eslint": "^7.1.0",
+    "@xgheaven/eslint-config-xgheaven": "^0.4.1",
+    "eslint": "^8.57.1",
+    "eslint-plugin-node": "^11.1.0",
     "prettier": "^3.0.3",
     "typescript": "^5.2.2"
   },
   "dependencies": {
     "@blueprintjs/core": "^5.5.1",
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
-    "core-js": "^3.33.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "core-js": "^3.49.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "regenerator-runtime": "^0.13.3",
+    "regenerator-runtime": "^0.14.1",
     "rxjs": "^6.5.4"
   },
   "browserslist": [

@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "WebWorker"],
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": ["src/worker.ts", "src/channel.ts", "src/cases/**/*.ts", "src/const.ts"]
+}

@@ -13,4 +13,4 @@ const channelModule = {
 
 export type ChannelModule = typeof channelModule
 
-const channel = new WorkerChannel(channelModule)
+export const channel = new WorkerChannel(channelModule)

@@ -116,7 +116,7 @@ export function createFiberGroup(fiberCreator: FiberCreator) {
       }
 
       const timer = interval(checkInterval)
-      const fiberInfos = new Array(parallel).fill(0).map((_, i) => {
+      const fiberInfos = new Array(parallel).fill(0).map(() => {
         const stats: ProgressStat[] = []
         const rets: ProgressStat[] = []
         const subscription = fiber.subscribe({

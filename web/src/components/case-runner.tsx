@@ -22,7 +22,14 @@ export function CaseRunner(props: { name: 'upload' | 'download'; title: string }
     setRunning(true)
     const channels = await createChannels()
     sub.current = zip(
-      ...channels.map((channel) => channel.observe(props.name, { packCount, duration, interval: 300, parallel })),
+      ...channels.map((channel) =>
+        channel.observe(props.name, {
+          packCount,
+          duration,
+          interval: 300,
+          parallel,
+        }),
+      ),
     ).subscribe({
       next(rate) {
         setRate(rate.reduce((a, b) => a + b, 0))

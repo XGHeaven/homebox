@@ -24,6 +24,12 @@ jobs:
       - name: Bootstrap
         run: |
           make bootstrap-web
+      - name: Check frontend
+        run: |
+          cd web
+          pnpm lint
+          pnpm typecheck
+          pnpm format:check
       - name: Build frontend assets
         run: |
           make build-web
