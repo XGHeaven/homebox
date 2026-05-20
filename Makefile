@@ -42,7 +42,10 @@ build-windows:
 	make build-arch TARGET=i686-pc-windows-msvc FILE=windows-386.exe
 
 build-linux:
+	# glibc targets
 	make build-arch TARGET=x86_64-unknown-linux-gnu FILE=linux-amd64
 	make build-arch TARGET=aarch64-unknown-linux-gnu FILE=linux-arm64
-	make build-arch TARGET=aarch64-unknown-linux-musl FILE=linux-arm64-musl
 	make build-arch TARGET=i686-unknown-linux-gnu FILE=linux-386
+	# musl targets for OpenWrt/Alpine-style environments
+	make build-arch TARGET=x86_64-unknown-linux-musl FILE=linux-amd64-musl
+	make build-arch TARGET=aarch64-unknown-linux-musl FILE=linux-arm64-musl
