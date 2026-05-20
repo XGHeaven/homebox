@@ -4,7 +4,7 @@ import React, { useCallback, useMemo, useState, useRef } from 'react'
 import { HostChannel } from './channel'
 import styled from '@emotion/styled'
 import { Global, css } from '@emotion/react'
-import { ChannelsContext, ConfigContext } from './context'
+import { ChannelsContext, ConfigContext, I18nContext } from './context'
 import { CaseRunner } from './components/case-runner'
 import { CaseConfig } from './components/case-config'
 import { DEFAULT_CONFIG, CONFIG_STORAGE_KEY } from './const'
@@ -13,6 +13,7 @@ import { LightTheme, DarkTheme } from './styles/theme'
 import { $globalStyle } from './styles/global'
 import { Theme, Config } from './types'
 import { Footer } from './components/footer'
+import { createTranslator } from './i18n'
 
 const $Container = styled.div`
   padding: 12px 24px;
@@ -62,6 +63,7 @@ export function App() {
     return channelsRef.current
   }, [threadCount])
   const $theme = useMemo(() => css(config.theme === Theme.Dark ? DarkTheme : LightTheme), [config.theme])
+  const t = useMemo(() => createTranslator(config.locale), [config.locale])
 
   function handleConfigChange(newConfig: Config) {
     localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(newConfig))
@@ -71,32 +73,34 @@ export function App() {
   return (
     <ChannelsContext.Provider value={createChannels}>
       <ConfigContext.Provider value={config}>
-        <Global
-          styles={[
-            $globalStyle,
-            css`
-              body {
-                ${$theme}
-              }
-            `,
-          ]}
-        />
-        <$Container className={config.theme === Theme.Dark ? 'bp5-dark' : ''}>
-          <CaseConfig defaultValue={config} onChange={handleConfigChange} />
-          {config.duration !== Infinity ? (
-            <RunCaseOnce />
-          ) : (
-            <div
-              css={css`
-                display: flex;
-              `}
-            >
-              <CaseRunner title='Download' name='download' />
-              <CaseRunner title='Upload' name='upload' />
-            </div>
-          )}
-          <Footer />
-        </$Container>
+        <I18nContext.Provider value={t}>
+          <Global
+            styles={[
+              $globalStyle,
+              css`
+                body {
+                  ${$theme}
+                }
+              `,
+            ]}
+          />
+          <$Container className={config.theme === Theme.Dark ? 'bp5-dark' : ''}>
+            <CaseConfig defaultValue={config} onChange={handleConfigChange} />
+            {config.duration !== Infinity ? (
+              <RunCaseOnce />
+            ) : (
+              <div
+                css={css`
+                  display: flex;
+                `}
+              >
+                <CaseRunner title={t('app.download')} name='download' />
+                <CaseRunner title={t('app.upload')} name='upload' />
+              </div>
+            )}
+            <Footer />
+          </$Container>
+        </I18nContext.Provider>
       </ConfigContext.Provider>
     </ChannelsContext.Provider>
   )

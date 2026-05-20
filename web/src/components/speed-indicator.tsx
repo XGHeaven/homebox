@@ -1,7 +1,7 @@
 import { ProgressBar, ProgressBarProps, Tag } from '@blueprintjs/core'
 import { css } from '@emotion/react'
 import { memo, useContext } from 'react'
-import { ConfigContext } from '../context'
+import { ConfigContext, I18nContext } from '../context'
 import { rateFormatters } from '../utils'
 
 const K = 1024
@@ -16,6 +16,7 @@ export const SpeedIndicator = memo(function SpeedIndicator({
   running?: boolean
 }) {
   const { unit } = useContext(ConfigContext)
+  const t = useContext(I18nContext)
   const formatter = rateFormatters[unit]
   const pbp: ProgressBarProps = {}
   if (typeof speed === 'number') {
@@ -55,7 +56,7 @@ export const SpeedIndicator = memo(function SpeedIndicator({
         `}
         intent={pbp.intent}
       >
-        {speed !== undefined ? formatter(speed) : 'Waiting...'}
+        {speed !== undefined ? formatter(speed) : t('state.waiting')}
       </Tag>
     </div>
   )

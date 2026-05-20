@@ -1,12 +1,13 @@
 import React, { useContext, useRef, useState } from 'react'
 import { Button } from '@blueprintjs/core'
-import { ChannelsContext, ConfigContext } from '../context'
+import { ChannelsContext, ConfigContext, I18nContext } from '../context'
 import { css } from '@emotion/react'
 import { SpeedIndicator } from './speed-indicator'
 import { Subscription, zip } from 'rxjs'
 
 export function CaseRunner(props: { name: 'upload' | 'download'; title: string }) {
   const createChannels = useContext(ChannelsContext)
+  const t = useContext(I18nContext)
   const { duration, packCount, parallel } = useContext(ConfigContext)
   const [rate, setRate] = useState(-1)
   const [running, setRunning] = useState(false)
@@ -57,7 +58,7 @@ export function CaseRunner(props: { name: 'upload' | 'download'; title: string }
     >
       <h3>{props.title}</h3>
       <SpeedIndicator speed={rate === -1 ? undefined : rate} running={running} />
-      <Button onClick={onClick}>{!running ? 'Start' : 'Stop'}</Button>
+      <Button onClick={onClick}>{!running ? t('action.start') : t('action.stop')}</Button>
     </div>
   )
 }

@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { $talc } from '../styles/utils'
 import styled from '@emotion/styled'
 import { Var, ThemeVar } from '../styles/variable'
+import { I18nContext } from '../context'
 
 const FooterContainer = styled.div`
   ${$talc}
@@ -10,9 +11,6 @@ const FooterContainer = styled.div`
 `
 
 export function Footer() {
-  return (
-    <FooterContainer>
-      测试结果通常只能代表当前设备性能下所能跑到的实际数据， 没有任何理论参考价值，不能作为链路理论数据使用。
-    </FooterContainer>
-  )
+  const t = useContext(I18nContext)
+  return <FooterContainer>{t('footer.notice')}</FooterContainer>
 }

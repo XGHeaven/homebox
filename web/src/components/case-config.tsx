@@ -1,10 +1,21 @@
-import { useState, useRef, useMemo } from 'react'
-import { NumericInput, FormGroup, RadioGroup, Radio, Slider, Button, ButtonGroup, Collapse } from '@blueprintjs/core'
-import { RunningMode, SpeedMode, Config, RateUnit, Theme } from '../types'
+import { useState, useRef, useMemo, useContext } from 'react'
+import {
+  NumericInput,
+  FormGroup,
+  RadioGroup,
+  Radio,
+  Slider,
+  Button,
+  ButtonGroup,
+  Collapse,
+  HTMLSelect,
+} from '@blueprintjs/core'
+import { RunningMode, SpeedMode, Config, RateUnit, Theme, Locale } from '../types'
 import { css } from '@emotion/react'
 import { Var, ThemeVar } from '../styles/variable'
 import styled from '@emotion/styled'
 import { $valm } from '../styles/utils'
+import { I18nContext } from '../context'
 
 const $Header = styled.div`
   display: flex;
@@ -19,6 +30,9 @@ const $HeaderLeft = styled.div`
 
 const $HeaderRight = styled.div`
   flex: none;
+  display: flex;
+  gap: 8px;
+  align-items: center;
 `
 
 const $mgr8 = css`
@@ -224,6 +238,7 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
         defaultValue?.duration === Infinity ? 10 : (defaultValue?.duration ?? 10 * 1000) / 1000,
       ),
       theme: createFormField(defaultValue?.theme ?? Theme.Light, {}),
+      locale: createFormField(defaultValue?.locale ?? Locale.En, {}),
     })
 
     group.whenChanged((nv, ov) => {
@@ -249,14 +264,16 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
           unit: nv.unit,
           duration: nv.runningMode === RunningMode.ONCE ? nv.duration * 1000 : Infinity,
           theme: nv.theme,
+          locale: nv.locale,
         })
       }
     })
     return group
   }, [defaultValue])
   const [isAdvancedConfig, setAdvancedConfig] = useState(false)
+  const t = useContext(I18nContext)
 
-  const { runningMode, threadCount, speedRange, packCount, duration, unit, parallel, theme } = form.fields
+  const { runningMode, threadCount, speedRange, packCount, duration, unit, parallel, theme, locale } = form.fields
   return (
     <div>
       <$Header>
@@ -271,14 +288,14 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
               onClick={() => runningMode.onChange(RunningMode.ONCE)}
               icon={runningMode.value === RunningMode.ONCE ? 'small-tick' : undefined}
             >
-              单次测速
+              {t('config.mode.once')}
             </Button>
             <Button
               intent={runningMode.value === RunningMode.CONTINUE ? 'success' : 'none'}
               onClick={() => runningMode.onChange(RunningMode.CONTINUE)}
               icon={runningMode.value === RunningMode.CONTINUE ? 'small-tick' : undefined}
             >
-              持续压测
+              {t('config.mode.continue')}
             </Button>
           </ButtonGroup>
           <ButtonGroup
@@ -309,11 +326,20 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
               intent={isAdvancedConfig ? 'success' : 'none'}
               icon='settings'
             >
-              {isAdvancedConfig ? '切换到普通配置' : '切换到高级配置'}
+              {isAdvancedConfig ? t('config.advanced.hide') : t('config.advanced.show')}
             </Button>
           </ButtonGroup>
         </$HeaderLeft>
         <$HeaderRight>
+          <HTMLSelect
+            title={t('config.language')}
+            value={locale.value}
+            onChange={(e) => locale.onChange(e.currentTarget.value as Locale)}
+            minimal
+          >
+            <option value={Locale.Zh}>中文</option>
+            <option value={Locale.En}>EN</option>
+          </HTMLSelect>
           <Button
             intent='warning'
             icon={theme.value === Theme.Light ? 'moon' : 'flash'}
@@ -332,36 +358,27 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
           `}
         >
           {runningMode.value === RunningMode.ONCE && (
-            <FormGroup label='测速持续时间' labelInfo='(s)' key='duration' inline>
+            <FormGroup label={t('config.duration')} labelInfo='(s)' key='duration' inline>
               <NumericInput value={duration.value} onValueChange={duration.onChange} />
             </FormGroup>
           )}
-          <FormGroup
-            label='测速速度范围'
-            key='speedRange'
-            inline
-            helperText='低速模式下不会压榨系统资源；高速模式下会尽力压榨系统资源'
-          >
+          <FormGroup label={t('config.speedRange')} key='speedRange' inline helperText={t('config.speedRange.help')}>
             <RadioGroup
               selectedValue={speedRange.value}
               onChange={(e) => speedRange.onChange(e.currentTarget.value as SpeedMode)}
               inline
             >
-              <Radio label='低速 (通常网络小于 2.5G)' value={SpeedMode.LOW} />
-              <Radio label='高速 (通常网络大于 2.5G)' value={SpeedMode.HIGH} />
+              <Radio label={t('config.speedRange.low')} value={SpeedMode.LOW} />
+              <Radio label={t('config.speedRange.high')} value={SpeedMode.HIGH} />
             </RadioGroup>
           </FormGroup>
 
           {speedRange.value === SpeedMode.HIGH && (
-            <FormGroup
-              label='Thread Count'
-              key='threadCount'
-              helperText='测速 Worker 数量，根据你的机器性能适当选择。一般来说 3 个足够满足万兆网络测速。低速模式下，默认为 1 个，高速模式下，默认为系统逻辑处理器数量 - 1'
-            >
+            <FormGroup label={t('config.threadCount')} key='threadCount' helperText={t('config.threadCount.help')}>
               <Slider min={1} max={8} value={threadCount.value} onChange={threadCount.onChange} />
             </FormGroup>
           )}
-          <FormGroup label='Pack Count' key='packCount' helperText='控制单次请求下载或上传的数据大小'>
+          <FormGroup label={t('config.packCount')} key='packCount' helperText={t('config.packCount.help')}>
             <Slider
               min={8}
               max={256}
@@ -372,7 +389,7 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
               onChange={(v) => packCount.onChange(v)}
             />
           </FormGroup>
-          <FormGroup label='Parallal' helperText='并行数量，推荐 3 个，如果想要测试单线程，可以调整为 1'>
+          <FormGroup label={t('config.parallel')} helperText={t('config.parallel.help')}>
             <Slider
               min={1}
               max={16}

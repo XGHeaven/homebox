@@ -29,6 +29,11 @@ export enum RateUnit {
   BYTE = 'byte',
 }
 
+export enum Locale {
+  En = 'en',
+  Zh = 'zh',
+}
+
 export interface Config {
   speedMode: SpeedMode
   threadCount: number
@@ -37,6 +42,7 @@ export interface Config {
   duration: number
   parallel: number
   theme: Theme
+  locale: Locale
 }
 
 export enum Theme {

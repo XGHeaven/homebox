@@ -1,7 +1,10 @@
 import { Config, SpeedMode, RateUnit, Theme } from './types'
+import { normalizeLocale } from './i18n'
 
 export const BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3300'
 export const CONFIG_STORAGE_KEY = 'homebox:config'
+
+const systemLocale = typeof navigator !== 'undefined' ? normalizeLocale(navigator.language) : normalizeLocale()
 
 const systemTheme = (() => {
   const matchMedia = (globalThis as { matchMedia?: (query: string) => { matches: boolean } }).matchMedia
@@ -24,4 +27,5 @@ export const DEFAULT_CONFIG: Config = {
   parallel: 3,
   unit: RateUnit.BIT,
   theme: systemTheme,
+  locale: systemLocale,
 }

@@ -2,7 +2,7 @@ import { SpeedIndicator } from './speed-indicator'
 import styled from '@emotion/styled'
 import { useState, useContext } from 'react'
 import { useRates } from '../hooks'
-import { ChannelsContext, ConfigContext } from '../context'
+import { ChannelsContext, ConfigContext, I18nContext } from '../context'
 import { zip, interval } from 'rxjs'
 import { rateFormatters } from '../utils'
 import { Button, Intent } from '@blueprintjs/core'
@@ -37,20 +37,13 @@ enum RunningStep {
   DONE,
 }
 
-const RunningStepLabels: Record<RunningStep, string> = {
-  [RunningStep.NONE]: 'Start',
-  [RunningStep.DOWNLOAD]: 'Downloading',
-  [RunningStep.PING]: 'Pinging',
-  [RunningStep.UPLOAD]: 'Uploading',
-  [RunningStep.DONE]: 'Restart',
-}
-
 export function RunCaseOnce() {
   const [dlRate, setDlRate] = useState(-1)
   const [ulRate, setUlRate] = useState(-1)
   const [ttl, pushTTL, clearTTL] = useRates(5)
   const [step, setStep] = useState(RunningStep.NONE)
   const createChannels = useContext(ChannelsContext)
+  const t = useContext(I18nContext)
   const { duration, parallel, packCount, unit } = useContext(ConfigContext)
 
   const _start = async () => {
@@ -101,7 +94,7 @@ export function RunCaseOnce() {
   const start = () => {
     _start().catch(() => {
       showToast({
-        message: `Error, Please check environment`,
+        message: t('error.environment'),
         intent: Intent.DANGER,
         icon: 'warning-sign',
       })
@@ -113,17 +106,17 @@ export function RunCaseOnce() {
     <div>
       <$Header>
         <$HeaderCase>
-          <$CaseTitle>Ping</$CaseTitle>
+          <$CaseTitle>{t('app.ping')}</$CaseTitle>
           <$CaseContent>{step >= RunningStep.PING ? `${ttl.toFixed(2)} ms` : '--'}</$CaseContent>
         </$HeaderCase>
 
         <$HeaderCase>
-          <$CaseTitle>Download</$CaseTitle>
+          <$CaseTitle>{t('app.download')}</$CaseTitle>
           <$CaseContent>{step >= RunningStep.DOWNLOAD ? rateFormatters[unit](dlRate) : '--'}</$CaseContent>
         </$HeaderCase>
 
         <$HeaderCase>
-          <$CaseTitle>Upload</$CaseTitle>
+          <$CaseTitle>{t('app.upload')}</$CaseTitle>
           <$CaseContent>{step >= RunningStep.UPLOAD ? rateFormatters[unit](ulRate) : '--'}</$CaseContent>
         </$HeaderCase>
       </$Header>
@@ -137,7 +130,15 @@ export function RunCaseOnce() {
         `}
       >
         <Button onClick={start} disabled={step !== RunningStep.NONE && step !== RunningStep.DONE}>
-          {RunningStepLabels[step]}
+          {
+            {
+              [RunningStep.NONE]: t('action.start'),
+              [RunningStep.DOWNLOAD]: t('state.downloading'),
+              [RunningStep.PING]: t('state.pinging'),
+              [RunningStep.UPLOAD]: t('state.uploading'),
+              [RunningStep.DONE]: t('action.restart'),
+            }[step]
+          }
         </Button>
       </div>
     </div>
