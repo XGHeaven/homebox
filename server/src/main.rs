@@ -1,5 +1,5 @@
 use actix_web::{
-    get, http::header::ContentType, middleware, options, post, web, App, Error, HttpRequest,
+    get, head, http::header::ContentType, middleware, options, post, web, App, Error, HttpRequest,
     HttpResponse, HttpServer, Responder,
 };
 use clap::{command, Args, Parser, Subcommand};
