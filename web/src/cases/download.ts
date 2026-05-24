@@ -105,7 +105,7 @@ export const fiberDownload = createFiber((count = 16) => {
       .then(async (resp) => {
         // IMPROVE
         if (!resp.body) {
-          return Promise.reject(new Error('request body is empty'))
+          throw new Error('request body is empty')
         }
         const reader = resp.body.getReader()
         sub.next(-1)

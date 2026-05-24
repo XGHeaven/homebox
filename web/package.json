@@ -21,9 +21,8 @@
     "@types/node": "^20.8.7",
     "@types/react": "^18.2.29",
     "@types/react-dom": "^18.2.13",
-    "@xgheaven/eslint-config-xgheaven": "^0.4.1",
-    "eslint": "^8.57.1",
-    "eslint-plugin-node": "^11.1.0",
+    "@xgheaven/eslint-config-xgheaven": "^0.5.0",
+    "eslint": "^9.39.4",
     "prettier": "^3.0.3",
     "typescript": "^5.2.2"
   },

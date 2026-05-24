@@ -48,7 +48,7 @@ export const SpeedIndicator = memo(function SpeedIndicator({
     >
       <ProgressBar css={css``} {...pbp} animate={running} />
       <Tag
-        round={true}
+        round
         css={css`
           flex: none;
           margin-left: 8px;

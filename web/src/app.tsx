@@ -41,8 +41,8 @@ export function App() {
     }
   }, [])
   const [config, setConfig] = useState(storageConfig)
+  const { threadCount } = config
   const createChannels = useCallback(async () => {
-    const { threadCount } = config
     if (channelsRef.current) {
       const channels = channelsRef.current!
       if (channels.length > threadCount) {
@@ -58,9 +58,9 @@ export function App() {
       return channels
     }
 
-    channelsRef.current = new Array(config.threadCount).fill(0).map(() => new HostChannel(createWorker()))
+    channelsRef.current = new Array(threadCount).fill(0).map(() => new HostChannel(createWorker()))
     return channelsRef.current
-  }, [config.threadCount])
+  }, [threadCount])
   const $theme = useMemo(() => css(config.theme === Theme.Dark ? DarkTheme : LightTheme), [config.theme])
 
   function handleConfigChange(newConfig: Config) {
