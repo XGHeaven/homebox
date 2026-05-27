@@ -11,6 +11,8 @@ use serde::Deserialize;
 use std::{path::PathBuf, time::Duration};
 
 const WRITE_PACK_SIZE: usize = 1 * 1024 * 1024;
+const MAX_DOWNLOAD_CHUNK_SIZE: usize = 64 * 1024 * 1024;
+const MAX_DOWNLOAD_TOTAL_SIZE: usize = 1024 * 1024 * 1024;
 
 static STATIC: Dir = include_dir!("../build/static");
 
@@ -32,6 +34,18 @@ struct ServeArgs {
     port: Option<u16>,
     #[arg(long, help = "Host to listen")]
     host: Option<String>,
+    #[arg(long, help = "Number of Actix workers (defaults to Actix auto-sizing)")]
+    workers: Option<usize>,
+    #[arg(
+        long,
+        help = "Maximum concurrent connections (defaults to Actix default)"
+    )]
+    max_connections: Option<usize>,
+    #[arg(
+        long,
+        help = "Keep-alive timeout in seconds (defaults to Actix default)"
+    )]
+    keep_alive_secs: Option<u64>,
 }
 
 #[get("/ping")]
@@ -65,9 +79,19 @@ async fn download(query: web::Query<DownloadQuery>) -> impl Responder {
         .and_then(|s| s.parse::<usize>().ok())
         .unwrap_or(WRITE_PACK_SIZE);
 
-    // OPTIMIZE: Pre-allocate all chunks upfront, avoid clone in stream
-    // Each chunk is independent, allowing zero-copy streaming
-    let chunks: Vec<Bytes> = (0..count).map(|_| Bytes::from(vec![0u8; size])).collect();
+    if size > MAX_DOWNLOAD_CHUNK_SIZE {
+        return HttpResponse::BadRequest().body(format!(
+            "size must be less than or equal to {MAX_DOWNLOAD_CHUNK_SIZE}"
+        ));
+    }
+
+    if count.saturating_mul(size) > MAX_DOWNLOAD_TOTAL_SIZE {
+        return HttpResponse::BadRequest().body(format!(
+            "count * size must be less than or equal to {MAX_DOWNLOAD_TOTAL_SIZE}"
+        ));
+    }
+
+    let chunk = Bytes::from(vec![0u8; size]);
 
     HttpResponse::Ok()
         .content_type("application/octet-stream")
@@ -77,14 +101,15 @@ async fn download(query: web::Query<DownloadQuery>) -> impl Responder {
         ))
         .append_header(("Content-Disposition", "attachment; filename=random.dat"))
         .append_header(("Content-Transfer-Encoding", "binary"))
-        .streaming(iter(chunks).map(Ok::<_, Error>))
+        .streaming(iter(0..count).map(move |_| Ok::<_, Error>(chunk.clone())))
 }
 
 #[post("/upload")]
 async fn upload(mut body: web::Payload) -> impl Responder {
-    // OPTIMIZE: Consume stream efficiently without unnecessary processing
-    while let Some(_chunk) = body.next().await {
-        // Chunk is automatically dropped, TCP backpressure is handled by actix
+    while let Some(chunk) = body.next().await {
+        if let Err(error) = chunk {
+            return HttpResponse::BadRequest().body(format!("failed to read upload body: {error}"));
+        }
     }
     HttpResponse::Ok().finish()
 }
@@ -133,10 +158,25 @@ async fn main() -> std::io::Result<()> {
                     .service(ping_head)
                     .service(static_resource)
                     .service(index)
-            })
-            .workers(4) // Use 4 workers for better concurrency
-            .max_connections(2048) // Increase max concurrent connections
-            .keep_alive(Duration::from_secs(60)); // Keep connections alive for 60s
+            });
+
+            let server = if let Some(workers) = args.workers {
+                server.workers(workers)
+            } else {
+                server
+            };
+
+            let server = if let Some(max_connections) = args.max_connections {
+                server.max_connections(max_connections)
+            } else {
+                server
+            };
+
+            let server = if let Some(keep_alive_secs) = args.keep_alive_secs {
+                server.keep_alive(Duration::from_secs(keep_alive_secs))
+            } else {
+                server
+            };
 
             let server_bind_address = format!(
                 "{}:{}",
