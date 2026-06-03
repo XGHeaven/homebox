@@ -1,15 +1,18 @@
+use actix_web::web::Bytes;
 use actix_web::{
     get, head, http::header::ContentType, middleware, options, post, web, App, Error, HttpRequest,
     HttpResponse, HttpServer, Responder,
 };
 use clap::{command, Args, Parser, Subcommand};
-use futures::{stream::poll_fn, task::Poll, StreamExt};
+use futures::{stream::iter, StreamExt};
 use include_dir::{include_dir, Dir};
 use mime_guess::mime;
 use serde::Deserialize;
-use std::path::PathBuf;
+use std::{path::PathBuf, time::Duration};
 
 const WRITE_PACK_SIZE: usize = 1 * 1024 * 1024;
+const MAX_DOWNLOAD_CHUNK_SIZE: usize = 64 * 1024 * 1024;
+const MAX_DOWNLOAD_TOTAL_SIZE: usize = 1024 * 1024 * 1024;
 
 static STATIC: Dir = include_dir!("../build/static");
 
@@ -31,6 +34,18 @@ struct ServeArgs {
     port: Option<u16>,
     #[arg(long, help = "Host to listen")]
     host: Option<String>,
+    #[arg(long, help = "Number of Actix workers (defaults to Actix auto-sizing)")]
+    workers: Option<usize>,
+    #[arg(
+        long,
+        help = "Maximum concurrent connections (defaults to Actix default)"
+    )]
+    max_connections: Option<usize>,
+    #[arg(
+        long,
+        help = "Keep-alive timeout in seconds (defaults to Actix default)"
+    )]
+    keep_alive_secs: Option<u64>,
 }
 
 #[get("/ping")]
@@ -53,7 +68,7 @@ struct DownloadQuery {
 
 #[get("/download")]
 async fn download(query: web::Query<DownloadQuery>) -> impl Responder {
-    let mut count = query
+    let count = query
         .count
         .clone()
         .and_then(|s| s.parse::<usize>().ok())
@@ -63,30 +78,38 @@ async fn download(query: web::Query<DownloadQuery>) -> impl Responder {
         .clone()
         .and_then(|s| s.parse::<usize>().ok())
         .unwrap_or(WRITE_PACK_SIZE);
-    let vecs = vec![0; size];
 
-    let stream = poll_fn(move |_| -> Poll<Option<Result<web::Bytes, Error>>> {
-        if count > 0 {
-            count -= 1;
-            Poll::Ready(Some(Ok(web::Bytes::from(vecs.clone()))))
-        } else {
-            Poll::Ready(None)
-        }
-    });
+    if size > MAX_DOWNLOAD_CHUNK_SIZE {
+        return HttpResponse::BadRequest().body(format!(
+            "size must be less than or equal to {MAX_DOWNLOAD_CHUNK_SIZE}"
+        ));
+    }
+
+    if count.saturating_mul(size) > MAX_DOWNLOAD_TOTAL_SIZE {
+        return HttpResponse::BadRequest().body(format!(
+            "count * size must be less than or equal to {MAX_DOWNLOAD_TOTAL_SIZE}"
+        ));
+    }
+
+    let chunk = Bytes::from(vec![0u8; size]);
+
     HttpResponse::Ok()
+        .content_type("application/octet-stream")
         .append_header((
             "Cache-Control",
             "no-store, no-cache, must-revalidate, max-age=0",
         ))
         .append_header(("Content-Disposition", "attachment; filename=random.dat"))
         .append_header(("Content-Transfer-Encoding", "binary"))
-        .streaming(stream)
+        .streaming(iter(0..count).map(move |_| Ok::<_, Error>(chunk.clone())))
 }
 
 #[post("/upload")]
 async fn upload(mut body: web::Payload) -> impl Responder {
     while let Some(chunk) = body.next().await {
-        let _ = chunk;
+        if let Err(error) = chunk {
+            return HttpResponse::BadRequest().body(format!("failed to read upload body: {error}"));
+        }
     }
     HttpResponse::Ok().finish()
 }
@@ -122,6 +145,7 @@ async fn main() -> std::io::Result<()> {
 
     match &cli.command {
         Comamnds::Serve(args) => {
+            // OPTIMIZE: Configure worker count and connection pool for high throughput
             let server = HttpServer::new(|| {
                 App::new()
                     .wrap(
@@ -135,6 +159,24 @@ async fn main() -> std::io::Result<()> {
                     .service(static_resource)
                     .service(index)
             });
+
+            let server = if let Some(workers) = args.workers {
+                server.workers(workers)
+            } else {
+                server
+            };
+
+            let server = if let Some(max_connections) = args.max_connections {
+                server.max_connections(max_connections)
+            } else {
+                server
+            };
+
+            let server = if let Some(keep_alive_secs) = args.keep_alive_secs {
+                server.keep_alive(Duration::from_secs(keep_alive_secs))
+            } else {
+                server
+            };
 
             let server_bind_address = format!(
                 "{}:{}",
