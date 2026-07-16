@@ -1,8 +1,8 @@
-import { BASE_URL } from '../const'
+import { API_BASE_URL } from '../const'
 
 export const ping = async () => {
   const now = performance.now()
-  const resp = await fetch(`${BASE_URL}/ping`, { method: 'HEAD' })
+  const resp = await fetch(`${API_BASE_URL}/ping`, { method: 'HEAD' })
 
   // we calculate time before consuming the response
   const time = performance.now() - now

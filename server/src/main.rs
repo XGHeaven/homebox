@@ -1,7 +1,8 @@
 use actix_web::web::Bytes;
 use actix_web::{
-    get, head, http::header::ContentType, middleware, options, post, web, App, Error, HttpRequest,
-    HttpResponse, HttpServer, Responder,
+    get,
+    http::{header::ContentType, Method},
+    middleware, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
 };
 use clap::{command, Args, Parser, Subcommand};
 use futures::{stream::iter, StreamExt};
@@ -48,14 +49,12 @@ struct ServeArgs {
     keep_alive_secs: Option<u64>,
 }
 
-#[get("/ping")]
 async fn ping_get() -> impl Responder {
     HttpResponse::Ok()
         .content_type(ContentType::json())
         .body("{\"message\": \"pong\"}")
 }
 
-#[head("/ping")]
 async fn ping_head() -> impl Responder {
     HttpResponse::NoContent().finish()
 }
@@ -66,7 +65,6 @@ struct DownloadQuery {
     size: Option<String>,
 }
 
-#[get("/download")]
 async fn download(query: web::Query<DownloadQuery>) -> impl Responder {
     let count = query
         .count
@@ -104,7 +102,6 @@ async fn download(query: web::Query<DownloadQuery>) -> impl Responder {
         .streaming(iter(0..count).map(move |_| Ok::<_, Error>(chunk.clone())))
 }
 
-#[post("/upload")]
 async fn upload(mut body: web::Payload) -> impl Responder {
     while let Some(chunk) = body.next().await {
         if let Err(error) = chunk {
@@ -114,7 +111,6 @@ async fn upload(mut body: web::Payload) -> impl Responder {
     HttpResponse::Ok().finish()
 }
 
-#[options("/upload")]
 async fn upload_options() -> impl Responder {
     HttpResponse::Ok().body("")
 }
@@ -151,11 +147,22 @@ async fn main() -> std::io::Result<()> {
                     .wrap(
                         middleware::DefaultHeaders::new().add(("Access-Control-Allow-Origin", "*")),
                     )
-                    .service(download)
-                    .service(upload)
-                    .service(upload_options)
-                    .service(ping_get)
-                    .service(ping_head)
+                    .route("/api/download", web::get().to(download))
+                    .route("/download", web::get().to(download))
+                    .route("/api/upload", web::post().to(upload))
+                    .route("/upload", web::post().to(upload))
+                    .route(
+                        "/api/upload",
+                        web::method(Method::OPTIONS).to(upload_options),
+                    )
+                    .route(
+                        "/upload",
+                        web::method(Method::OPTIONS).to(upload_options),
+                    )
+                    .route("/api/ping", web::get().to(ping_get))
+                    .route("/ping", web::get().to(ping_get))
+                    .route("/api/ping", web::head().to(ping_head))
+                    .route("/ping", web::head().to(ping_head))
                     .service(static_resource)
                     .service(index)
             });

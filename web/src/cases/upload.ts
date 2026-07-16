@@ -1,5 +1,5 @@
 import { createFiber, createFiberGroup } from './utils'
-import { BASE_URL } from '../const'
+import { API_BASE_URL } from '../const'
 import { Observable } from 'rxjs'
 
 const blob1M = new Blob([new ArrayBuffer(1024 * 1024)])
@@ -18,7 +18,7 @@ const fiberUpload = createFiber(
       let loadedBytes = 0
       let loaded = false
 
-      xhr.open('POST', `${BASE_URL}/upload`)
+      xhr.open('POST', `${API_BASE_URL}/upload`)
 
       xhr.upload.onloadstart = () => {
         sub.next(-1)

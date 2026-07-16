@@ -1,7 +1,7 @@
 import { Config, SpeedMode, RateUnit, Theme } from './types'
 import { normalizeLocale } from './i18n'
 
-export const BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3300'
+export const API_BASE_URL = '/api'
 export const CONFIG_STORAGE_KEY = 'homebox:config'
 
 const systemLocale = typeof navigator !== 'undefined' ? normalizeLocale(navigator.language) : normalizeLocale()

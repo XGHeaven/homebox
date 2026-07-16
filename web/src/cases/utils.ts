@@ -90,7 +90,7 @@ export function createFiber(request: (count?: number) => Observable<number>): Fi
         unsubscribe() {
           finished = true
           clearTimeout(timer)
-          subscription.unsubscribe()
+          subscription?.unsubscribe()
           sub.complete()
         },
       })
