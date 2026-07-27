@@ -88,7 +88,14 @@ export function CaseRunner(props: { name: 'upload' | 'download'; title: string }
       <h3>{props.title}</h3>
       <SpeedIndicator speed={rate === -1 ? undefined : rate} running={running} />
       <RateCurve rates={rates} running={running} />
-      <Button onClick={onClick}>{!running ? t('action.start') : t('action.stop')}</Button>
+      <Button
+        css={css`
+          margin-top: 12px;
+        `}
+        onClick={onClick}
+      >
+        {!running ? t('action.start') : t('action.stop')}
+      </Button>
     </div>
   )
 }
