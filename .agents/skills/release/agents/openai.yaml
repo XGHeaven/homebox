@@ -1,0 +1,4 @@
+interface:
+  display_name: "Homebox Release"
+  short_description: "Safely prepare and publish Homebox releases"
+  default_prompt: "Use $release to prepare a Homebox release after confirming the version and changelog."
