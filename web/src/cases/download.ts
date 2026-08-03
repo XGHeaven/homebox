@@ -1,5 +1,5 @@
 import { createFiber, createFiberGroup } from './utils'
-import { BASE_URL } from '../const'
+import { API_BASE_URL } from '../const'
 import { Observable } from 'rxjs'
 
 export interface DownloadProgressStat {
@@ -75,7 +75,7 @@ export function* xhrDownload(count: number = 10): Generator<DownloadProgressStat
     finished = true
   }
 
-  xhr.open('GET', `${BASE_URL}/download?count=${count}`)
+  xhr.open('GET', `${API_BASE_URL}/download?count=${count}`)
   xhr.send()
 
   let ret = true
@@ -98,7 +98,7 @@ export function* xhrDownload(count: number = 10): Generator<DownloadProgressStat
 export const fiberDownload = createFiber((count = 16) => {
   return new Observable((sub) => {
     const abort = new AbortController()
-    fetch(`${BASE_URL}/download?count=${count}`, {
+    fetch(`${API_BASE_URL}/download?count=${count}`, {
       method: 'get',
       signal: abort.signal,
     })

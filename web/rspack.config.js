@@ -21,5 +21,12 @@ module.exports = {
       importSource: '@emotion/react',
     },
   },
+  devServer: {
+    host: process.env.HOMEBOX_DEV_HOST || '127.0.0.1',
+    port: 8086,
+    proxy: {
+      '/api': 'http://127.0.0.1:3300',
+    },
+  },
   devtool: !prod ? undefined : false
 };

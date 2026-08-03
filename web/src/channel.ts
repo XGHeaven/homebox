@@ -59,6 +59,7 @@ export class HostChannel<Module extends WorkerExportedModule> {
 
       sub.add({
         unsubscribe: () => {
+          delete this.listeners[id]
           this.worker.postMessage({
             type: 'unobserve',
             id,

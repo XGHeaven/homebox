@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useContext } from 'react'
+import { useState, useRef, useMemo, useContext, useEffect } from 'react'
 import {
   NumericInput,
   FormGroup,
@@ -8,6 +8,7 @@ import {
   Button,
   ButtonGroup,
   Collapse,
+  Dialog,
   HTMLSelect,
 } from '@blueprintjs/core'
 import { RunningMode, SpeedMode, Config, RateUnit, Theme, Locale } from '../types'
@@ -22,10 +23,21 @@ const $Header = styled.div`
   flex-direction: row;
   margin-bottom: 24px;
   align-items: center;
+
+  @media (max-width: 719px) {
+    align-items: flex-start;
+    gap: 8px;
+  }
 `
 
 const $HeaderLeft = styled.div`
   flex: auto;
+
+  @media (max-width: 719px) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 `
 
 const $HeaderRight = styled.div`
@@ -33,6 +45,41 @@ const $HeaderRight = styled.div`
   display: flex;
   gap: 8px;
   align-items: center;
+`
+
+const $AdvancedPanel = styled.div<{ dialog?: boolean }>`
+  padding: ${(props) => (props.dialog ? '0' : '24px')};
+  background: ${(props) => (props.dialog ? 'transparent' : Var(ThemeVar.ConfigPanelBgColor))};
+  margin-bottom: ${(props) => (props.dialog ? '0' : '24px')};
+
+  ${(props) =>
+    props.dialog
+      ? css`
+          .bp5-form-group {
+            display: block;
+            margin-bottom: 18px;
+          }
+
+          .bp5-label,
+          .bp5-form-content {
+            width: 100%;
+          }
+
+          .bp5-form-helper-text {
+            margin-top: 6px;
+            line-height: 1.45;
+          }
+
+          .bp5-control {
+            margin-bottom: 8px;
+          }
+
+          .bp5-slider {
+            margin-top: 16px;
+            margin-bottom: 8px;
+          }
+        `
+      : ''}
 `
 
 const $mgr8 = css`
@@ -221,6 +268,29 @@ function createFormObjectGroup<T extends FormFields>(fields: T): FormObjectGroup
   }
 }
 
+function useMediaQuery(query: string) {
+  const getMatches = () => (typeof matchMedia === 'undefined' ? false : matchMedia(query).matches)
+  const [matches, setMatches] = useState(getMatches)
+
+  useEffect(() => {
+    if (typeof matchMedia === 'undefined') {
+      return
+    }
+
+    const media = matchMedia(query)
+    const onChange = () => setMatches(media.matches)
+    onChange()
+    if (media.addEventListener) {
+      media.addEventListener('change', onChange)
+      return () => media.removeEventListener('change', onChange)
+    }
+    media.addListener(onChange)
+    return () => media.removeListener(onChange)
+  }, [query])
+
+  return matches
+}
+
 export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config) => void }) {
   const { defaultValue, onChange } = props
   const [, setCount] = useState(0)
@@ -271,9 +341,50 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
     return group
   }, [defaultValue])
   const [isAdvancedConfig, setAdvancedConfig] = useState(false)
+  const isMobile = useMediaQuery('(max-width: 719px)')
   const t = useContext(I18nContext)
 
   const { runningMode, threadCount, speedRange, packCount, duration, unit, parallel, theme, locale } = form.fields
+  const renderAdvancedConfig = (dialog = false) => (
+    <$AdvancedPanel dialog={dialog}>
+      {runningMode.value === RunningMode.ONCE && (
+        <FormGroup label={t('config.duration')} labelInfo='(s)' key='duration' inline>
+          <NumericInput value={duration.value} onValueChange={duration.onChange} />
+        </FormGroup>
+      )}
+      <FormGroup label={t('config.speedRange')} key='speedRange' inline helperText={t('config.speedRange.help')}>
+        <RadioGroup
+          selectedValue={speedRange.value}
+          onChange={(e) => speedRange.onChange(e.currentTarget.value as SpeedMode)}
+          inline
+        >
+          <Radio label={t('config.speedRange.low')} value={SpeedMode.LOW} />
+          <Radio label={t('config.speedRange.high')} value={SpeedMode.HIGH} />
+        </RadioGroup>
+      </FormGroup>
+
+      {speedRange.value === SpeedMode.HIGH && (
+        <FormGroup label={t('config.threadCount')} key='threadCount' helperText={t('config.threadCount.help')}>
+          <Slider min={1} max={8} value={threadCount.value} onChange={threadCount.onChange} />
+        </FormGroup>
+      )}
+      <FormGroup label={t('config.packCount')} key='packCount' helperText={t('config.packCount.help')}>
+        <Slider
+          min={8}
+          max={256}
+          stepSize={8}
+          labelStepSize={32}
+          labelRenderer={(v) => `${v}M`}
+          value={packCount.value}
+          onChange={(v) => packCount.onChange(v)}
+        />
+      </FormGroup>
+      <FormGroup label={t('config.parallel')} helperText={t('config.parallel.help')}>
+        <Slider min={1} max={16} stepSize={1} labelStepSize={4} value={parallel.value} onChange={parallel.onChange} />
+      </FormGroup>
+    </$AdvancedPanel>
+  )
+
   return (
     <div>
       <$Header>
@@ -326,7 +437,7 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
               intent={isAdvancedConfig ? 'success' : 'none'}
               icon='settings'
             >
-              {isAdvancedConfig ? t('config.advanced.hide') : t('config.advanced.show')}
+              {t('config.advanced.title')}
             </Button>
           </ButtonGroup>
         </$HeaderLeft>
@@ -349,58 +460,27 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
         </$HeaderRight>
       </$Header>
 
-      <Collapse isOpen={isAdvancedConfig}>
+      {!isMobile ? <Collapse isOpen={isAdvancedConfig}>{renderAdvancedConfig()}</Collapse> : null}
+      <Dialog
+        className={theme.value === Theme.Dark ? 'bp5-dark' : undefined}
+        isOpen={isMobile && isAdvancedConfig}
+        onClose={() => setAdvancedConfig(false)}
+        title={t('config.advanced.title')}
+        css={css`
+          width: min(calc(100vw - 32px), 420px);
+          margin: 0;
+        `}
+      >
         <div
           css={css`
-            padding: 24px;
-            background: ${Var(ThemeVar.ConfigPanelBgColor)};
-            margin-bottom: 24px;
+            max-height: calc(100vh - 144px);
+            overflow: auto;
+            padding: 16px 18px 20px;
           `}
         >
-          {runningMode.value === RunningMode.ONCE && (
-            <FormGroup label={t('config.duration')} labelInfo='(s)' key='duration' inline>
-              <NumericInput value={duration.value} onValueChange={duration.onChange} />
-            </FormGroup>
-          )}
-          <FormGroup label={t('config.speedRange')} key='speedRange' inline helperText={t('config.speedRange.help')}>
-            <RadioGroup
-              selectedValue={speedRange.value}
-              onChange={(e) => speedRange.onChange(e.currentTarget.value as SpeedMode)}
-              inline
-            >
-              <Radio label={t('config.speedRange.low')} value={SpeedMode.LOW} />
-              <Radio label={t('config.speedRange.high')} value={SpeedMode.HIGH} />
-            </RadioGroup>
-          </FormGroup>
-
-          {speedRange.value === SpeedMode.HIGH && (
-            <FormGroup label={t('config.threadCount')} key='threadCount' helperText={t('config.threadCount.help')}>
-              <Slider min={1} max={8} value={threadCount.value} onChange={threadCount.onChange} />
-            </FormGroup>
-          )}
-          <FormGroup label={t('config.packCount')} key='packCount' helperText={t('config.packCount.help')}>
-            <Slider
-              min={8}
-              max={256}
-              stepSize={8}
-              labelStepSize={32}
-              labelRenderer={(v) => `${v}M`}
-              value={packCount.value}
-              onChange={(v) => packCount.onChange(v)}
-            />
-          </FormGroup>
-          <FormGroup label={t('config.parallel')} helperText={t('config.parallel.help')}>
-            <Slider
-              min={1}
-              max={16}
-              stepSize={1}
-              labelStepSize={4}
-              value={parallel.value}
-              onChange={parallel.onChange}
-            />
-          </FormGroup>
+          {renderAdvancedConfig(true)}
         </div>
-      </Collapse>
+      </Dialog>
     </div>
   )
 }
