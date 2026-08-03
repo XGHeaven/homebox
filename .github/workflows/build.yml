@@ -104,7 +104,9 @@ jobs:
           path: build/static
       - name: Install tool
         if: matrix.platform.tool
-        run: sudo apt-get install ${{ matrix.platform.tool }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ${{ matrix.platform.tool }}
       - name: Bootstrap
         run: |
           make bootstrap-server
