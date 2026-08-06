@@ -29,6 +29,7 @@ jobs:
           cd web
           pnpm lint
           pnpm typecheck
+          pnpm test
           pnpm format:check
       - name: Build frontend assets
         run: |

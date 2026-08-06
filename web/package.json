@@ -7,6 +7,7 @@
   "scripts": {
     "start": "rspack serve",
     "build": "rspack build",
+    "test": "tsx --test \"src/**/*.test.ts\"",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.worker.json",
@@ -24,6 +25,7 @@
     "@xgheaven/eslint-config-xgheaven": "^0.5.0",
     "eslint": "^9.39.4",
     "prettier": "^3.0.3",
+    "tsx": "^4.20.3",
     "typescript": "^5.2.2"
   },
   "dependencies": {
