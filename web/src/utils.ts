@@ -2,11 +2,11 @@ import { RateUnit } from './types'
 
 const byteUnit = ['B/s', 'KB/s', 'MB/s', 'GB/s', 'TB/s']
 const bitUnit = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps']
-const rateBase = 1024
+const rateBase = 1000
 
 export function formatByteRate(rate: number) {
   let level = 0
-  while (rate > rateBase) {
+  while (rate >= rateBase) {
     rate = rate / rateBase
     level++
   }
@@ -16,7 +16,7 @@ export function formatByteRate(rate: number) {
 
 export function formatBitRate(rate: number) {
   let level = 0
-  while (rate > rateBase) {
+  while (rate >= rateBase) {
     rate = rate / rateBase
     level++
   }
