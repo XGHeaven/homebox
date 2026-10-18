@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react'
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
 
 export function useRates(count: number): [number, (rate: number) => void, () => void] {
   const [rates, setRates] = useState<number[]>([])
@@ -30,4 +30,27 @@ export function useRates(count: number): [number, (rate: number) => void, () => 
   }, [rates])
 
   return [rate, update, clear]
+}
+
+export function useMediaQuery(query: string) {
+  const getMatches = () => (typeof matchMedia === 'undefined' ? false : matchMedia(query).matches)
+  const [matches, setMatches] = useState(getMatches)
+
+  useEffect(() => {
+    if (typeof matchMedia === 'undefined') {
+      return
+    }
+
+    const media = matchMedia(query)
+    const onChange = () => setMatches(media.matches)
+    onChange()
+    if (media.addEventListener) {
+      media.addEventListener('change', onChange)
+      return () => media.removeEventListener('change', onChange)
+    }
+    media.addListener(onChange)
+    return () => media.removeListener(onChange)
+  }, [query])
+
+  return matches
 }
