@@ -13,10 +13,12 @@
 - 友好的 UI 交互
 - 针对低速网络(< 2.5G)优化测速资源占用
 
-<p>
-  <a href="./doc/network-speedtest.png"><img src="./doc/network-speedtest.png" alt="网络测速" width="49%" /></a>
-  <a href="./doc/llm-benchmark.png"><img src="./doc/llm-benchmark.png" alt="LLM 测速" width="49%" /></a>
-</p>
+<table>
+  <tr>
+    <td width="50%" valign="top"><a href="./doc/network-speedtest.png"><img src="./doc/network-speedtest.png" alt="网络测速" width="100%" /></a></td>
+    <td width="50%" valign="top"><a href="./doc/llm-benchmark.png"><img src="./doc/llm-benchmark.png" alt="LLM 测速" width="100%" /></a></td>
+  </tr>
+</table>
 
 ## Requirement
 

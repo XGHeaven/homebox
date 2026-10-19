@@ -16,7 +16,7 @@ build-server:
 	cd server && HOMEBOX_ENV=production cargo build --locked --release
 
 build-web:
-	cd web && pnpm run build
+	cd web && NODE_ENV=production pnpm run build
 
 build: build-web build-server
 

@@ -20,7 +20,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Prepare
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
+          bash script/release-channel.sh "$RELEASE_TAG"
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV          
 
@@ -55,6 +58,13 @@ jobs:
     needs:
       - build-image
     steps:
+      - uses: actions/checkout@v4
+      - name: Resolve release channel
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          channel=$(bash script/release-channel.sh "$RELEASE_TAG")
+          echo "IMAGE_CHANNEL=$channel" >> "$GITHUB_ENV"
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
@@ -74,12 +84,10 @@ jobs:
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          echo $DOCKER_METADATA_OUTPUT_JSON
           docker buildx imagetools create \
-            --tag ${{ env.REGISTRY_IMAGE }}:latest \
-            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            --tag "${REGISTRY_IMAGE}:${IMAGE_CHANNEL}" \
             $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
       
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:latest
+          docker buildx imagetools inspect "${REGISTRY_IMAGE}:${IMAGE_CHANNEL}"

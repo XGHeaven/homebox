@@ -34,6 +34,14 @@ reason, but keep the patch version as the default until the user chooses otherwi
 the `v` prefix; Cargo versions do not. Do not update `web/package.json`, whose historical version
 is independent.
 
+When beta is requested, use `vMAJOR.MINOR.PATCH-beta.N` (start at 1, increment for
+subsequent betas of the same target version), and set Cargo's version to the same value
+without `v`. Preserve an explicitly supplied valid beta version. The publishing scripts
+also accept `vMAJOR.MINOR.PATCH-beta`. Beta publishes a GitHub prerelease and Docker
+`:beta`, never `:latest`; stable versions publish Docker `:latest`. Unsupported prerelease
+suffixes are rejected rather than routed to stable. Inspect existing beta tags before
+suggesting a number and include the channel in the confirmation preview.
+
 ## 2. Draft the changelog
 
 Draft concise, user-facing release notes from the commits and diffs since the previous release.
@@ -57,7 +65,8 @@ Show one release preview in this form before making any change:
   - ...
 - 本地验证：<commands/checks>
 - 远端动作：推送 release commit（如需要）和 tag；触发 Build、Docker、GitHub Release
-- Docker：当前工作流只更新 xgheaven/homebox:latest，不创建版本镜像 tag
+- 发布渠道：stable / beta（beta 的 GitHub Release 标记为 prerelease）
+- Docker：stable 更新 xgheaven/homebox:latest；beta 仅更新 xgheaven/homebox:beta，不创建版本镜像 tag
 
 请回复“确认发版”，或指出要修改的版本号、Changelog 或发布范围。
 ```
@@ -103,13 +112,15 @@ Pushing the tag triggers:
 - `.github/workflows/build.yml` to build platform archives and create the GitHub Release through
   `make pack-arch` / `gh release create --notes-from-tag`.
 - `.github/workflows/docker.yml` to build amd64 and arm64 images and update
-  `xgheaven/homebox:latest`.
+  `xgheaven/homebox:latest` for stable releases or `xgheaven/homebox:beta` for betas.
+  Beta GitHub Releases use `--prerelease --latest=false`.
 
 ## 6. Verify completion
 
 Monitor both tag-triggered workflows to completion. Verify the GitHub Release exists, its notes
 match the confirmed changelog as closely as the workflow permits, and the expected archives are
-attached. Report workflow and release links plus any failed matrix targets.
+attached. For beta, verify the prerelease flag and `:beta` image; confirm it did not
+replace the stable latest release or Docker `:latest`. Report workflow and release links plus any failed matrix targets.
 
 If publishing partially succeeds, stop and describe the exact remote state. Do not delete or
 retarget the release/tag as an automatic recovery step.

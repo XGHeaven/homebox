@@ -44,3 +44,16 @@ cargo build --locked --release
 ```
 
 以上构建命令使用 POSIX shell 的环境变量语法。构建后可运行 `server/target/release/homebox serve`（Windows 为 `.exe`），直接在 3300 端口提供页面和接口，无需前端开发服务。修改前端后，应先重新生成静态资源，再构建后端二进制。
+
+## 发布渠道
+
+发布操作遵循 `.agents/skills/release/SKILL.md`，需先确认版本与发布范围。
+
+| Git tag | GitHub Release | Docker tag |
+| --- | --- | --- |
+| `v1.2.3` | 正式发布 | `latest` |
+| `v1.2.3-beta.1`（也支持 `-beta`） | 预发布，不替换 Latest | `beta` |
+
+Cargo 版本保留 beta 后缀但不带 `v`。其他预发布后缀暂不支持，脚本会拒绝发布。Docker 不创建版本号镜像 tag。
+
+运行 `python3 script/test-release.py` 可离线验证渠道判断和 Release 命令参数，不会执行真实发布。
