@@ -199,6 +199,7 @@ export function LlmBenchmark({ onRunningChange }: { onRunningChange: (running: b
       const duration = await runBenchmark(runConfig, abortController.signal, (result) => {
         const previousStatus = liveResults.current[result.id]?.status
         liveResults.current[result.id] = result
+        if (result.status === 'error') setError(result.error || (locale === 'zh' ? '请求失败' : 'Request failed'))
         if (['success', 'error', 'cancelled'].includes(result.status) && previousStatus !== result.status) {
           const point = sampleRequestTps(result, performance.now() - startTime)
           setTpsSamples((previous) => [...previous, point])
@@ -398,7 +399,7 @@ export function LlmBenchmark({ onRunningChange }: { onRunningChange: (running: b
             value={running ? Math.min(elapsed / BENCHMARK_LIMITS.maxDurationMs, 1) : 1}
             animate={running}
             stripes={running}
-            intent='success'
+            intent={error ? 'danger' : 'success'}
           />
 
           <LlmSpeedChart samples={speedSamples} tpsSamples={tpsSamples} />

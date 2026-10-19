@@ -309,3 +309,27 @@ test('hard deadline aborts active requests even before three rounds finish', asy
     {id:4,status:'success'},
   ]).endToEndTps,20)
  })
+
+test('normalizes complete endpoint trailing slashes without losing prefixes or queries', () => {
+  for (const [protocol, endpoint] of [
+    ['openai', '/proxy/v1/chat/completions'],
+    ['anthropic', '/proxy/v1/messages'],
+    ['ollama', '/proxy/api/chat'],
+  ]) {
+    assert.equal(resolveEndpoint(`https://example.com${endpoint}///?region=test`, protocol),
+      `https://example.com${endpoint}?region=test`)
+  }
+})
+
+test('initial Anthropic usage remains incomplete after cancellation or error', () => {
+  const parser = new StreamParser('anthropic', () => {})
+  parser.push(sse({type:'message_start',message:{usage:{input_tokens:12,output_tokens:1}}}))
+  for (const status of ['running', 'cancelled', 'error']) {
+    const result = summarize([{id:0,status,duration:100,inputTokens:parser.inputTokens,
+      outputTokens:parser.outputTokens,totalTokens:parser.totalTokens}])
+    assert.equal(result.totalTokens,13)
+    assert.equal(result.totalTokensIncomplete,true)
+  }
+  assert.equal(summarize([{id:0,status:'cancelled'}]).totalTokensIncomplete,false)
+  assert.equal(summarize([{id:0,status:'success',totalTokens:13}]).totalTokensIncomplete,false)
+})

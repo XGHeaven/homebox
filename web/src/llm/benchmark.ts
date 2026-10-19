@@ -50,6 +50,8 @@ export function resolveEndpoint(endpoint: string, protocol: Protocol): string {
   const suffix = { openai: '/chat/completions', anthropic: '/messages', ollama: '/chat' }[protocol]
   if (!path.endsWith(suffix)) {
     url.pathname = path + (path ? '' : protocol === 'ollama' ? '/api' : '/v1') + suffix
+  } else {
+    url.pathname = path
   }
   return url.toString()
 }
@@ -389,7 +391,7 @@ export function summarize(results: RequestResult[]) {
       r.status !== 'queued' &&
       !(r.status === 'cancelled' && r.duration === undefined) &&
       ((!validTokenCount(r.totalTokens) && !(validTokenCount(r.inputTokens) && validTokenCount(r.outputTokens))) ||
-        r.status === 'running'),
+        r.status !== 'success'),
   )
   return {
     successes: successes.length,

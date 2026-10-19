@@ -197,7 +197,7 @@ export function LlmModelInput({
                     : -1,
                 )
               }
-              if (e.key === 'Enter' && open) {
+              if (e.key === 'Enter' && open && filtered.length > 0) {
                 e.preventDefault()
                 if (active >= 0 && filtered[active]) choose(filtered[active])
                 else setOpen(false)
