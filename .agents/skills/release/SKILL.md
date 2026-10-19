@@ -37,7 +37,9 @@ is independent.
 ## 2. Draft the changelog
 
 Draft concise, user-facing release notes from the commits and diffs since the previous release.
-Group material changes under suitable headings such as Features, Performance, Fixes, and Build.
+Use a short plain-text list of changes. Do not add Markdown headings (`#`, `##`, `###`),
+bold markers, or code fences to the tag message. If grouping is useful, use plain labels
+such as `Features:` or `Fixes:`. The tag name itself must be only the version, e.g. `v0.1.3`.
 Omit merge mechanics and low-value internal detail unless it affects users or release artifacts.
 Preserve issue or PR numbers when useful. Clearly label the changelog as a draft the user can edit.
 
@@ -86,7 +88,11 @@ local check cannot prove every cross-platform matrix build will pass.
 Match the historical release mechanism:
 
 1. Ensure the release commit is on the intended branch and pushed when necessary.
-2. Create an annotated `v*` tag whose message contains the confirmed changelog.
+2. Create an annotated `v<version>` tag whose message contains the confirmed plain-text
+   changelog. Write the message to a temporary UTF-8 file and pass it with `git tag -a
+   <tag> -F <file>`. Before pushing, inspect `git for-each-ref --format='%(contents)'
+   refs/tags/<tag>` to verify the stored text and line breaks; do not use Markdown
+   headings in the message, since `--notes-from-tag` reuses it as release notes.
 3. Run a push dry-run before each real push.
 4. Push the branch first when a release commit was created, then push the tag explicitly.
 5. Never use force push, replace an existing tag, or delete a tag without separate explicit

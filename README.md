@@ -13,11 +13,10 @@
 - 友好的 UI 交互
 - 针对低速网络(< 2.5G)优化测速资源占用
 
-[v1 进度追踪看板](https://github.com/XGHeaven/homebox/projects/1)
-
-![网络测速](./doc/network-speedtest.png)
-
-![LLM 测速](./doc/llm-benchmark.png)
+<p>
+  <a href="./doc/network-speedtest.png"><img src="./doc/network-speedtest.png" alt="网络测速" width="49%" /></a>
+  <a href="./doc/llm-benchmark.png"><img src="./doc/llm-benchmark.png" alt="LLM 测速" width="49%" /></a>
+</p>
 
 ## Requirement
 
