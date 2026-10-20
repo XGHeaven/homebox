@@ -46,3 +46,20 @@ test('model lookup authenticates via proxy, deduplicates and handles pagination 
   t.mock.method(global, 'fetch', async () => new Response('', { status: 401 }))
   await assert.rejects(fetchModels(config, signal), /HTTP 401/)
 })
+
+test('model lookup trims keys for all protocols without changing saved configuration', async (t) => {
+  const requests = []
+  t.mock.method(global, 'fetch', async (_, options) => {
+    const body = JSON.parse(options.body)
+    requests.push(body)
+    return new Response(JSON.stringify(body.protocol === 'ollama' ? {models:[]} : {data:[]}))
+  })
+  for (const protocol of ['openai','anthropic','ollama']) {
+    for (const key of [' \n test-key\r\n ', ' \n ']) {
+      const connection = {...config,protocol,key}
+      await fetchModels(connection,new AbortController().signal)
+      assert.equal(requests.at(-1).key,key.trim())
+      assert.equal(connection.key,key)
+    }
+  }
+})

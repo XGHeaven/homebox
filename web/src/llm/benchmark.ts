@@ -103,6 +103,7 @@ function validTokenCount(value: unknown): value is number {
 export class StreamParser {
   private buffer = ''
   private data: string[] = []
+  private dataLength = 0
   done = false
   inputTokens?: number
   totalTokens?: number
@@ -135,12 +136,18 @@ export class StreamParser {
     if (this.protocol === 'ollama') {
       if (line.trim()) this.event(line)
     } else if (!line) this.dispatch()
-    else if (line.startsWith('data:')) this.data.push(line.slice(5).replace(/^ /, ''))
+    else if (line.startsWith('data:')) {
+      const value = line.slice(5).replace(/^ /, '')
+      this.dataLength += value.length + 1
+      if (this.dataLength > 1024 * 1024) throw new Error('Stream event exceeds 1 MiB.')
+      this.data.push(value)
+    }
   }
   private dispatch() {
     if (!this.data.length) return
     const data = this.data.join('\n')
     this.data = []
+    this.dataLength = 0
     this.event(data)
   }
   private event(data: string) {

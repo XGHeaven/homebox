@@ -18,7 +18,7 @@ export async function fetchModels(connection: Connection, signal: AbortSignal): 
     const response = await fetch('/api/llm/models', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Homebox-LLM': '1' },
-      body: JSON.stringify({ url: url.toString(), protocol: connection.protocol, key: connection.key }),
+      body: JSON.stringify({ url: url.toString(), protocol: connection.protocol, key: connection.key.trim() }),
       signal,
     })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)

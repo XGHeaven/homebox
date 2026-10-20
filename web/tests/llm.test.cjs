@@ -373,3 +373,19 @@ test('invalid reasoning breakdown leaves generation TPS unavailable', async (t) 
     assert.ok(result.endToEndTps>0)
   }
 })
+
+test('SSE enforces cumulative data-line limit and resets it between events', () => {
+  const parser = new StreamParser('openai', () => {})
+  const line = 'data: ' + ' '.repeat(65536) + '\n'
+  assert.throws(() => {
+    for (let i = 0; i < 17; i++) parser.push(line)
+  }, /exceeds 1 MiB/)
+  const valid = new StreamParser('openai', () => {})
+  for (let event = 0; event < 3; event++) {
+    valid.push('data: {\n')
+    for (let i = 0; i < 10; i++) valid.push(line)
+    valid.push('data: "choices": []}\n\n')
+  }
+  valid.push('data: [DONE]\n\n')
+  assert.equal(valid.done, true)
+})
