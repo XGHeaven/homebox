@@ -59,7 +59,7 @@ export const llmMessages = {
     ttftHelp:
       '从请求开始到首个非空内容（含思考内容）的时间，单位为秒。显示成功请求的平均值，包含网络和 Homebox 转发耗时。',
     tpsHelp:
-      '请求结束后按 (输出 tokens − 1) ÷ 首末内容间隔计算生成速率。此处显示成功请求中有效 TPS 的平均值；缺少 usage 或内容样本不足时不计入。',
+      '请求结束后按 (输出 tokens − 1) ÷ 首末内容间隔计算生成速率。此处显示成功请求中有效 TPS 的平均值；有推理用量明细时，扣除推理 tokens 并使用正文的首末时间；明细无效、缺少 usage 或内容样本不足时不计入。',
     tokensHelp:
       '本次测速累计的输入和输出 tokens，以接口 usage 为准，不重复累加缓存或思考等细分字段。≥ 表示统计不完整，— 表示尚未获得用量；中途停止可能收不到最终 usage。',
     characterSpeedHelp: '每个采样间隔新增字符数 ÷ 间隔秒数，包含接口返回的思考内容。字符数不是 token 数。',
@@ -144,7 +144,7 @@ export const llmMessages = {
     ttftHelp:
       'Seconds from request start to the first non-empty content, including thinking. Shows the average across successful requests, including network and Homebox relay latency.',
     tpsHelp:
-      'Computed at completion as (output tokens − 1) / time between first and last content. Shows the mean of valid TPS values from successful requests; missing usage or insufficient samples are excluded.',
+      'Computed at completion as (output tokens − 1) / time between first and last content. Shows the mean of valid TPS values from successful requests; When reasoning usage is reported, reasoning tokens are excluded and text arrival times are used. Invalid breakdowns, missing usage or insufficient samples are excluded.',
     tokensHelp:
       'Total input and output tokens reported by usage during this run. Cache and reasoning details are not added again. ≥ indicates incomplete usage; — means none reported. Stopping early may lose final usage.',
     characterSpeedHelp:

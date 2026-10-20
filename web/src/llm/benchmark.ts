@@ -107,9 +107,11 @@ export class StreamParser {
   inputTokens?: number
   totalTokens?: number
   outputTokens?: number
+  reasoningTokens?: number
+  invalidReasoningUsage = false
   constructor(
     private protocol: Protocol,
-    private onContent: (content: string) => void,
+    private onContent: (content: string, reasoning?: boolean) => void,
   ) {}
 
   push(text: string, final = false) {
@@ -154,11 +156,18 @@ export class StreamParser {
     let total: unknown
     let count: unknown
     let content: unknown
+    let reasoning = false
     if (this.protocol === 'openai') {
       input = event.usage?.prompt_tokens
       total = event.usage?.total_tokens
       count = event.usage?.completion_tokens
+      const details = event.usage?.completion_tokens_details
+      if (details && 'reasoning_tokens' in details) {
+        this.invalidReasoningUsage = !validTokenCount(details.reasoning_tokens)
+        if (!this.invalidReasoningUsage) this.reasoningTokens = details.reasoning_tokens
+      }
       const delta = event.choices?.[0]?.delta
+      reasoning = !delta?.content && !!delta?.reasoning_content
       content = delta?.content || delta?.reasoning_content || delta?.refusal
     } else if (this.protocol === 'anthropic') {
       if (event.type === 'message_start') {
@@ -182,7 +191,7 @@ export class StreamParser {
         this.done = true
       }
     }
-    if (typeof content === 'string' && content.length) this.onContent(content)
+    if (typeof content === 'string' && content.length) this.onContent(content, reasoning)
     if (validTokenCount(input)) this.inputTokens = input
     if (validTokenCount(count)) this.outputTokens = count
     if (validTokenCount(total)) this.totalTokens = total
@@ -219,6 +228,9 @@ export async function runRequest(
       }, 200)
     : undefined
   let lastContent: number | undefined
+  let firstText: number | undefined
+  let lastText: number | undefined
+  let parser: StreamParser | undefined
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
   try {
     const response = await fetch('/api/llm', {
@@ -236,10 +248,14 @@ export async function runRequest(
     reader = response.body.getReader()
     const decoder = new TextDecoder()
     let arrival = 0
-    const parser = new StreamParser(config.protocol, (content) => {
+    parser = new StreamParser(config.protocol, (content, reasoning) => {
       const now = arrival
       result.ttft ??= now
       lastContent = now
+      if (!reasoning) {
+        firstText ??= now
+        lastText = now
+      }
       result.outputCharacters! += Array.from(content).length
       result.outputPreview = Array.from(result.outputPreview + content)
         .slice(-2000)
@@ -266,15 +282,27 @@ export async function runRequest(
     result.inputTokens = parser.inputTokens
     result.totalTokens = parser.totalTokens
     result.outputTokens = parser.outputTokens
+    // When reasoning usage is reported, measure only text tokens over text arrival time.
+    // Invalid or inconsistent details cannot support a generation TPS estimate.
+    const reasoningTokens = parser.reasoningTokens
+    const generationTokens = parser.invalidReasoningUsage
+      ? undefined
+      : result.outputTokens === undefined
+      ? undefined
+      : reasoningTokens === undefined
+      ? result.outputTokens
+      : result.outputTokens - reasoningTokens
+    const first = reasoningTokens === undefined ? result.ttft : firstText
+    const last = reasoningTokens === undefined ? lastContent : lastText
     // Approximate decode throughput; the first content event can contain >1 token.
     if (
-      result.outputTokens !== undefined &&
-      result.outputTokens > 1 &&
-      result.ttft !== undefined &&
-      lastContent !== undefined &&
-      lastContent > result.ttft
+      generationTokens !== undefined &&
+      generationTokens > 1 &&
+      first !== undefined &&
+      last !== undefined &&
+      last > first
     ) {
-      result.tps = ((result.outputTokens - 1) * 1000) / (lastContent - result.ttft)
+      result.tps = ((generationTokens - 1) * 1000) / (last - first)
     }
     result.status = 'success'
   } catch (error) {
@@ -291,6 +319,11 @@ export async function runRequest(
       ? error.message
       : 'Request failed.'
   } finally {
+    if (parser) {
+      result.inputTokens = parser.inputTokens
+      result.outputTokens = parser.outputTokens
+      result.totalTokens = parser.totalTokens
+    }
     result.duration = performance.now() - start
     if (result.status === 'success' && result.outputTokens !== undefined && result.duration > 0) {
       result.endToEndTps = (result.outputTokens * 1000) / result.duration
@@ -369,12 +402,13 @@ export function summarize(results: RequestResult[]) {
       .filter((value): value is number => value !== undefined && Number.isFinite(value))
     return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : undefined
   }
-  const reported = results.filter(
-    (r) => r.outputTokens !== undefined && Number.isFinite(r.outputTokens) && r.outputTokens >= 0,
-  )
+  const reported = results.filter((r) => validTokenCount(r.outputTokens))
   const outputTokens = reported.length ? reported.reduce((sum, r) => sum + r.outputTokens!, 0) : undefined
   const outputTokensIncomplete = results.some(
-    (r) => r.status !== 'queued' && !(r.status === 'cancelled' && r.duration === undefined) && !reported.includes(r),
+    (r) =>
+      r.status !== 'queued' &&
+      !(r.status === 'cancelled' && r.duration === undefined) &&
+      !validTokenCount(r.outputTokens),
   )
   const consumed = results.filter(
     (r) => validTokenCount(r.totalTokens) || validTokenCount(r.inputTokens) || validTokenCount(r.outputTokens),

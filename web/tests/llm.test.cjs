@@ -333,3 +333,43 @@ test('initial Anthropic usage remains incomplete after cancellation or error', (
   assert.equal(summarize([{id:0,status:'cancelled'}]).totalTokensIncomplete,false)
   assert.equal(summarize([{id:0,status:'success',totalTokens:13}]).totalTokensIncomplete,false)
 })
+
+test('Anthropic usage survives errors in split, coalesced and EOF events', async (t) => {
+  const start = sse({type:'message_start',message:{usage:{input_tokens:12,output_tokens:1}}})
+  const error = sse({type:'error',error:{type:'overloaded_error'}})
+  for (const chunks of [[start,error], [start+error], [start+error.trimEnd()]]) {
+    t.mock.method(global,'fetch',mockFetch(chunks))
+    const result = await runRequest({...config,protocol:'anthropic'},0,new AbortController().signal)
+    assert.equal(result.status,'error')
+    assert.equal(result.totalTokens,13)
+    assert.equal(result.inputTokens,12)
+    assert.equal(result.outputTokens,1)
+    assert.equal(summarize([result]).totalTokensIncomplete,true)
+  }
+})
+
+test('generation TPS excludes hidden reasoning but total and end-to-end usage include it', async (t) => {
+  let now = 0
+  t.mock.method(performance, 'now', () => now += 1000)
+  const end = sse({choices:[],usage:{completion_tokens:1100,total_tokens:1112,prompt_tokens:12,
+    completion_tokens_details:{reasoning_tokens:1000}}})+'data: [DONE]\n\n'
+  t.mock.method(global,'fetch',mockFetch([delta('a'),delta('b'),end]))
+  const result = await runRequest(config,0,new AbortController().signal)
+  assert.equal(result.status,'success')
+  assert.equal(result.outputTokens,1100)
+  assert.equal(result.totalTokens,1112)
+  assert.equal(result.tps,99)
+  assert.equal(result.endToEndTps,1100*1000/result.duration)
+})
+
+test('invalid reasoning breakdown leaves generation TPS unavailable', async (t) => {
+  for (const reasoning of [-1, 'unknown', 200]) {
+    t.mock.method(global,'fetch',mockFetch([delta('a'),delta('b'),sse({choices:[],usage:{
+      completion_tokens:100,completion_tokens_details:{reasoning_tokens:reasoning}
+    }})+'data: [DONE]\n\n']))
+    const result = await runRequest(config,0,new AbortController().signal)
+    assert.equal(result.tps,undefined)
+    assert.equal(result.outputTokens,100)
+    assert.ok(result.endToEndTps>0)
+  }
+})
