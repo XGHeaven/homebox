@@ -1,5 +1,6 @@
 import { LlmMetrics } from './llm-metrics'
-import { LlmResults, SavedResult } from './llm-results'
+import { LlmResults } from './llm-results'
+import { SavedResult, snapshotConfig } from '../llm/results'
 import { AdvancedSettings, AdvancedSettingsButton, BenchmarkToolbar } from './benchmark-controls'
 import { readConnection, writeConnection } from '../llm/connection'
 import { LlmSpeedChart } from './llm-speed-chart'
@@ -169,8 +170,7 @@ export function LlmBenchmark({ onRunningChange }: { onRunningChange: (running: b
     }
     const abortController = new AbortController()
     controller.current = abortController
-    const { key: _key, ...safeConfig } = runConfig
-    snapshot.current = safeConfig
+    snapshot.current = snapshotConfig(runConfig)
     setError('')
     setRunId(new Date().toISOString())
     setElapsed(0)

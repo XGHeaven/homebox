@@ -1,22 +1,21 @@
-import { useContext, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { Button, Callout, Dialog, HTMLSelect } from '@blueprintjs/core'
 import { toPng } from 'html-to-image'
 import { ConfigContext } from '../context'
 import { Theme } from '../types'
-import { BenchmarkConfig, RequestResult, summarize } from '../llm/benchmark'
-import { SpeedSample, TpsSample } from '../llm/speed'
+import { summarize } from '../llm/benchmark'
+import {
+  SavedResult,
+  readResults,
+  saveResult,
+  removeResult,
+  sanitizeResult,
+  legacyResultsKey,
+  resultPrefix,
+} from '../llm/results'
 import { LlmMetrics } from './llm-metrics'
 import { LlmSpeedChart } from './llm-speed-chart'
 
-export interface SavedResult {
-  id: string
-  config?: Omit<BenchmarkConfig, 'key'>
-  elapsedMs: number
-  results: RequestResult[]
-  speedSamples: SpeedSample[]
-  tpsSamples: TpsSample[]
-}
-const storageKey = 'homebox:llm-results:v1'
 function download(url: string, name: string) {
   const link = document.createElement('a')
   link.href = url
@@ -39,20 +38,27 @@ export function LlmResults({
   const [error, setError] = useState('')
   const [saved, setSaved] = useState<SavedResult[]>(() => {
     try {
-      const data = JSON.parse(localStorage.getItem(storageKey) || '[]')
-      return Array.isArray(data)
-        ? data.filter(
-            (r) =>
-              typeof r.id === 'string' &&
-              Array.isArray(r.results) &&
-              Array.isArray(r.speedSamples) &&
-              Array.isArray(r.tpsSamples),
-          )
-        : []
+      return readResults(localStorage)
     } catch {
       return []
     }
   })
+  useEffect(() => {
+    const sync = (event: StorageEvent) => {
+      if (
+        event.storageArea !== localStorage ||
+        (event.key !== null && event.key !== legacyResultsKey && !event.key.startsWith(resultPrefix))
+      )
+        return
+      try {
+        setSaved(readResults(localStorage))
+      } catch {
+        setError(zh ? '读取结果失败，请重试。' : 'Unable to read results. Please retry.')
+      }
+    }
+    window.addEventListener('storage', sync)
+    return () => window.removeEventListener('storage', sync)
+  }, [zh])
   const [selected, setSelected] = useState('')
   const [busy, setBusy] = useState(false)
   const capture = useRef<HTMLDivElement>(null)
@@ -63,8 +69,8 @@ export function LlmResults({
   function deleteResult() {
     if (!active) return
     try {
-      const next = saved.filter((r) => r.id !== active.id)
-      localStorage.setItem(storageKey, JSON.stringify(next))
+      removeResult(localStorage, active.id)
+      const next = readResults(localStorage)
       setSaved(next)
       setSelected(hasCurrent ? '' : next[0]?.id ?? '')
       setError('')
@@ -74,8 +80,8 @@ export function LlmResults({
   }
   function save() {
     try {
-      const next = [record, ...saved.filter((r) => r.id !== record.id)]
-      localStorage.setItem(storageKey, JSON.stringify(next))
+      saveResult(localStorage, record)
+      const next = readResults(localStorage)
       setSaved(next)
       setError('')
     } catch {
@@ -83,7 +89,7 @@ export function LlmResults({
     }
   }
   function exportJson(value: SavedResult) {
-    const blob = new Blob([JSON.stringify({ ...value, summary: summarize(value.results) }, null, 2)], {
+    const blob = new Blob([JSON.stringify({ ...sanitizeResult(value), summary: summarize(value.results) }, null, 2)], {
       type: 'application/json',
     })
     const url = URL.createObjectURL(blob)
@@ -169,7 +175,7 @@ export function LlmResults({
             <>
               <HTMLSelect
                 fill
-                value={selected || (hasCurrent ? '' : saved[0]?.id)}
+                value={saved.some((r) => r.id === selected) ? selected : hasCurrent ? '' : saved[0]?.id}
                 onChange={(e) => setSelected(e.target.value)}
                 style={{ marginBottom: 16 }}
               >

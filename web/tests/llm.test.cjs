@@ -389,3 +389,17 @@ test('SSE enforces cumulative data-line limit and resets it between events', () 
   valid.push('data: [DONE]\n\n')
   assert.equal(valid.done, true)
 })
+
+test('large reads of individually valid SSE and NDJSON events are accepted', () => {
+  for (const protocol of ['openai','ollama']) {
+    const chunk = protocol==='openai' ? delta('x'.repeat(4096)) : JSON.stringify({message:{content:'x'.repeat(4096)}})+'\n'
+    let count=0
+    const parser=new StreamParser(protocol,()=>count++)
+    parser.push(chunk.repeat(300))
+    assert.equal(count,300)
+    parser.push(protocol==='openai' ? 'data: [DONE]\n\n' : '{"done":true}\n')
+    assert.equal(parser.done,true)
+    assert.throws(()=>new StreamParser(protocol,()=>{}).push('x'.repeat(1024*1024+1)+'\n'),/exceeds 1 MiB/)
+    assert.throws(()=>new StreamParser(protocol,()=>{}).push('x'.repeat(1024*1024+1)),/exceeds 1 MiB/)
+  }
+})

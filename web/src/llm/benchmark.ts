@@ -117,15 +117,16 @@ export class StreamParser {
 
   push(text: string, final = false) {
     this.buffer += text
-    if (this.buffer.length > 1024 * 1024) throw new Error('Stream event exceeds 1 MiB.')
     let match: RegExpExecArray | null
     while ((match = /\r\n|\n|\r/.exec(this.buffer))) {
       // A CRLF pair may be split between reads.
       if (!final && match[0] === '\r' && match.index === this.buffer.length - 1) break
+      if (match.index > 1024 * 1024) throw new Error('Stream event exceeds 1 MiB.')
       const line = this.buffer.slice(0, match.index)
       this.buffer = this.buffer.slice(match.index + match[0].length)
       this.line(line)
     }
+    if (this.buffer.length > 1024 * 1024) throw new Error('Stream event exceeds 1 MiB.')
     if (final) {
       if (this.buffer) this.line(this.buffer)
       this.buffer = ''
