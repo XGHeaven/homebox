@@ -1,34 +1,36 @@
 # Homebox
 
-家庭网络工具箱。用于组建家庭局域网时，对网络进行调试、检测、压测的工具集合。
+家庭网络与 LLM 测速工具箱，支持局域网调试、链路压测和 LLM 流式接口性能测试。
 
 ## Feature
 
 - 面向未来浏览器设计
 - 高达 10G 的浏览器速度测试
 - 自带 Ping 检测
+- LLM 测速，支持结果保存与导出
 - 丰富的自定义测速参数
 - 服务端无需像传统文件拷贝一样需要固态的支持
 - 友好的 UI 交互
 - 针对低速网络(< 2.5G)优化测速资源占用
 
-[v1 进度追踪看板](https://github.com/XGHeaven/homebox/projects/1)
-
-![dark-theme](./doc/dark-theme.png)
-
-![light-theme](./doc/light-theme.png)
+<table>
+  <tr>
+    <td width="50%" valign="top"><a href="./doc/network-speedtest.png"><img src="./doc/network-speedtest.png" alt="网络测速" width="100%" /></a></td>
+    <td width="50%" valign="top"><a href="./doc/llm-benchmark.png"><img src="./doc/llm-benchmark.png" alt="LLM 测速" width="100%" /></a></td>
+  </tr>
+</table>
 
 ## Requirement
 
 - 本软件需要一个服务端进行部署，然后通过客户端访问网页进行测试
 - 当需要对万兆以上网络测试的时候，需要保证客户端的性能（主要为 CPU 单核）足够强劲，否则可能会成为瓶颈。
-  具体的要求可以看后文的[性能测试](#Performance)
+  具体的要求可以看后文的[性能测试](#performance)
 
 ## Install
 
 ### Docker
 
-首先你需要有一台服务器，只要能支持安装 Docker 即可，比如群辉、FreeNas、unRaid、CentOS 等等，暂时只支持 x86 服务器。
+首先你需要有一台服务器，只要能支持安装 Docker 即可，比如群辉、FreeNas、unRaid、CentOS 等等。镜像架构请以所用标签为准。
 
 ```bash
 docker run -d -p 3300:3300 --name homebox xgheaven/homebox
@@ -41,20 +43,35 @@ docker run -d -p 3300:3300 --name homebox xgheaven/homebox
 
 直接在 [Release](https://github.com/XGHeaven/homebox/releases) 下载对应版本即可。
 
-解压之后直接执行 serve 命令即可启动服务，参数如下
+下载后执行 `serve` 启动，默认监听 `0.0.0.0:3300`：
 
-```text
-Usage: homebox serve [OPTIONS]
-
-Options:
-      --port <PORT>  Port to listen
-      --host <HOST>  Host to listen
-  -h, --help         Print help
+```bash
+./homebox serve --host 0.0.0.0 --port 3300
 ```
+
+可选参数：
+
+| 参数 | 用途 |
+| --- | --- |
+| `--host` / `--port` | 监听地址和端口 |
+| `--workers` | 服务端工作线程数 |
+| `--max-connections` | 最大并发连接数 |
+| `--keep-alive-secs` | Keep-alive 超时（秒） |
+
+后三项未指定时使用服务端默认设置；完整用法见 `homebox serve --help`。
 
 ## Usage
 
-输入网址之后，会看到分为两种测试模式，分别是单次测速和持续压测。
+顶部可切换「网络测速」和「LLM 测速」，支持亮暗主题和中英文。
+
+- `/#/network`：网络测速。
+- `/#/llm`：LLM 测速。
+
+刷新与浏览器前进后退会保留对应页面；直接访问首页时恢复上次选择的工具。
+
+### 网络测速
+
+网络测速提供单次测速和持续压测两种模式。
 
 - **单次测速**的模式下，会依次执行 Ping/Download/Upload 测试，一般可以直接用这个模式。
 - **持续压测**的模式下，可以不限时的以最高速度压测链路，通常可以用于设备移动中链路稳定性测试、多设备压测、路由器转发散热性能测试等。
@@ -62,15 +79,32 @@ Options:
 默认情况下，设备会以低速模式运行，适用于大部分网络情况。
 也可以在**高级配置**中切换为高速模式，此时会将客户端资源榨干的方式尽可能压榨网络流量，用于万兆以上的高速网络。
 
+### LLM 测速
+
+支持 OpenAI 兼容 Chat Completions、Anthropic Messages 和 Ollama Chat。填写接口地址、协议和密钥，输入模型名称或点击「获取模型」，即可开始测速。并发数、提示词、输出上限等选项位于「高级配置」。
+
+- 默认单并发，至少运行 30 秒并完成 3 轮请求，最长 60 秒。
+- 展示平均 TTFT、生成 TPS（不含首内容等待）、端到端 TPS（包含请求总耗时）和输入输出总 token 用量；详细说明见指标旁的问号。
+- 双轴曲线展示字符/s 和生成 TPS，TPS 在请求完成后计算。
+- 支持保存结果、导出 PNG 截图和 JSON，通过「结果记录」查看或删除已保存的结果。
+
+接口配置（含明文密钥）和保存的结果存储在当前浏览器，结果保存与导出不包含密钥字段和生成文本。请求由 Homebox 服务端转发，接口地址中的 `localhost` 指服务端所在环境；测速会产生实际 API 用量。Homebox 无内置认证，请在可信网络使用，公网部署需自行配置访问认证。
+
+独立模式使用 `/?alone=true#/llm`，隐藏顶部功能切换，保留语言和主题设置。
+
 ### Terminal(WIP)
 
 某些极端情况下，机器性能不足或者浏览器版本过低，可以直接通过复制浏览器中提供的测速脚本，在终端中测速。
 一方面方便某些懒人不愿意打命令行，另一方面脱离了浏览器的环境，测速性能和准确度会更高
 
+## Development
+
+开发启动、检查与构建步骤见 [开发指南](./DEVELOPMENT.md)。
+
 ## Design
 
 由于众所周知的原因，浏览器中 JavaScript 的效率是比较低的，再加上网络请求的时候，需要占用大量的内存。
-所以为了避免主线程的卡顿，所有的请求都是在 Web Worker 中进行的。
+所以为了避免主线程的卡顿，网络测速请求在 Web Worker 中进行。
 
 但仅仅一个 Worker 是支撑不住万兆网络的测速要求的，因为一个 Worker 并发请求的能力依旧很低。
 比如使用 curl 单链接单进程最高可以达到 2GB/s 的速度，核算过来大约 16Gbps。
@@ -124,7 +158,7 @@ homebox-linux-arm64: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV
 
 ## Powered by
 
-- Rust(actix-web) 服务端
+- Rust 服务端
 - TypeScript 前端语言
 - React 前端框架
 - Rspack 前端打包工具

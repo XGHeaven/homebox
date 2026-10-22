@@ -9,7 +9,6 @@ import {
   ButtonGroup,
   Collapse,
   Dialog,
-  HTMLSelect,
 } from '@blueprintjs/core'
 import { RunningMode, SpeedMode, Config, RateUnit, Theme, Locale } from '../types'
 import { css } from '@emotion/react'
@@ -38,13 +37,6 @@ const $HeaderLeft = styled.div`
     flex-wrap: wrap;
     gap: 8px;
   }
-`
-
-const $HeaderRight = styled.div`
-  flex: none;
-  display: flex;
-  gap: 8px;
-  align-items: center;
 `
 
 const $AdvancedPanel = styled.div<{ dialog?: boolean }>`
@@ -344,7 +336,7 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
   const isMobile = useMediaQuery('(max-width: 719px)')
   const t = useContext(I18nContext)
 
-  const { runningMode, threadCount, speedRange, packCount, duration, unit, parallel, theme, locale } = form.fields
+  const { runningMode, threadCount, speedRange, packCount, duration, unit, parallel, theme } = form.fields
   const renderAdvancedConfig = (dialog = false) => (
     <$AdvancedPanel dialog={dialog}>
       {runningMode.value === RunningMode.ONCE && (
@@ -441,23 +433,6 @@ export function CaseConfig(props: { defaultValue?: Config; onChange?: (v: Config
             </Button>
           </ButtonGroup>
         </$HeaderLeft>
-        <$HeaderRight>
-          <HTMLSelect
-            title={t('config.language')}
-            value={locale.value}
-            onChange={(e) => locale.onChange(e.currentTarget.value as Locale)}
-            minimal
-          >
-            <option value={Locale.Zh}>中文</option>
-            <option value={Locale.En}>EN</option>
-          </HTMLSelect>
-          <Button
-            intent='warning'
-            icon={theme.value === Theme.Light ? 'moon' : 'flash'}
-            onClick={() => theme.onChange(theme.value === Theme.Dark ? Theme.Light : Theme.Dark)}
-            minimal
-          />
-        </$HeaderRight>
       </$Header>
 
       {!isMobile ? <Collapse isOpen={isAdvancedConfig}>{renderAdvancedConfig()}</Collapse> : null}

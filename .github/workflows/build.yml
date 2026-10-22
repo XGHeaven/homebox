@@ -31,6 +31,8 @@ jobs:
           pnpm typecheck
           pnpm test
           pnpm format:check
+      - name: Check release routing
+        run: python3 script/test-release.py
       - name: Build frontend assets
         run: |
           make build-web

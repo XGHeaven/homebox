@@ -20,6 +20,9 @@ importers:
       core-js:
         specifier: ^3.49.0
         version: 3.49.0
+      html-to-image:
+        specifier: ^1.11.13
+        version: 1.11.13
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -1736,6 +1739,9 @@ packages:
 
   html-entities@2.4.0:
     resolution: {integrity: sha512-igBTJcNNNhvZFRtm8uA6xMY6xYleeDwn3PeBCkDz7tHttv4F2hsDI2aPgNERWzvRcNYHNT3ymRaQzllmXj4YsQ==}
+
+  html-to-image@1.11.13:
+    resolution: {integrity: sha512-cuOPoI7WApyhBElTTb9oqsawRvZ0rHhaHwghRLlTuffoD1B2aDemlCruLeZrUIIdvG7gs9xeELEPm6PhuASqrg==}
 
   http-deceiver@1.2.7:
     resolution: {integrity: sha512-LmpOGxTfbpgtGVxJrj5k7asXHCgNZp5nLfp+hWc8QQRqtb7fUy6kRY3BO1h9ddF6yIPYUARgxGOwB42DnxIaNw==}
@@ -5170,6 +5176,8 @@ snapshots:
       wbuf: 1.7.3
 
   html-entities@2.4.0: {}
+
+  html-to-image@1.11.13: {}
 
   http-deceiver@1.2.7: {}
 
