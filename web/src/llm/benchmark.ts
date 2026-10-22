@@ -164,7 +164,7 @@ export class StreamParser {
     let total: unknown
     let count: unknown
     let content: unknown
-    let reasoning = false
+    let thinking: unknown
     if (this.protocol === 'openai') {
       input = event.usage?.prompt_tokens
       total = event.usage?.total_tokens
@@ -175,8 +175,8 @@ export class StreamParser {
         if (!this.invalidReasoningUsage) this.reasoningTokens = details.reasoning_tokens
       }
       const delta = event.choices?.[0]?.delta
-      reasoning = !delta?.content && !!delta?.reasoning_content
-      content = delta?.content || delta?.reasoning_content || delta?.refusal
+      thinking = delta?.reasoning_content
+      content = delta?.content || delta?.refusal
     } else if (this.protocol === 'anthropic') {
       if (event.type === 'message_start') {
         const usage = event.message?.usage
@@ -192,14 +192,16 @@ export class StreamParser {
       if (event.type === 'content_block_delta') content = event.delta?.text || event.delta?.thinking
       if (event.type === 'message_stop') this.done = true
     } else {
-      content = event.message?.content || event.message?.thinking
+      thinking = event.message?.thinking
+      content = event.message?.content
       if (event.done === true) {
         input = event.prompt_eval_count
         count = event.eval_count
         this.done = true
       }
     }
-    if (typeof content === 'string' && content.length) this.onContent(content, reasoning)
+    if (typeof thinking === 'string' && thinking.length) this.onContent(thinking, true)
+    if (typeof content === 'string' && content.length) this.onContent(content, false)
     if (validTokenCount(input)) this.inputTokens = input
     if (validTokenCount(count)) this.outputTokens = count
     if (validTokenCount(total)) this.totalTokens = total

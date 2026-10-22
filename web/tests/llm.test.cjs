@@ -403,3 +403,13 @@ test('large reads of individually valid SSE and NDJSON events are accepted', () 
     assert.throws(()=>new StreamParser(protocol,()=>{}).push('x'.repeat(1024*1024+1)),/exceeds 1 MiB/)
   }
 })
+
+test('mixed thinking and text fields both count and retain their content kind', () => {
+  for (const protocol of ['openai','ollama']) {
+    const contents=[]
+    const parser=new StreamParser(protocol,(text,reasoning)=>contents.push({text,reasoning}))
+    parser.push(protocol==='openai' ? sse({choices:[{delta:{content:'answer',reasoning_content:'plan'}}]}) : JSON.stringify({message:{content:'answer',thinking:'plan'}})+'\n')
+    assert.deepEqual(contents,[{text:'plan',reasoning:true},{text:'answer',reasoning:false}])
+    assert.equal(contents.reduce((sum,x)=>sum+x.text.length,0),10)
+  }
+})

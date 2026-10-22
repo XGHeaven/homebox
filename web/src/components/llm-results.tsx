@@ -174,6 +174,7 @@ export function LlmResults({
           {active ? (
             <>
               <HTMLSelect
+                aria-label={zh ? '选择结果记录' : 'Select result record'}
                 fill
                 value={saved.some((r) => r.id === selected) ? selected : hasCurrent ? '' : saved[0]?.id}
                 onChange={(e) => setSelected(e.target.value)}
