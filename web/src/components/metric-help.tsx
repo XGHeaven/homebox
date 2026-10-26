@@ -1,4 +1,4 @@
-import { useContext, useEffect, useId, useState } from 'react'
+import { useContext, useEffect, useId, useRef, useState } from 'react'
 import { Button, Dialog, Tooltip } from '@blueprintjs/core'
 import { ConfigContext } from '../context'
 import { useMediaQuery } from '../hooks'
@@ -9,7 +9,38 @@ export function MetricHelp({ label, description }: { label: string; description:
   const mobile = useMediaQuery('(max-width: 719px)')
   const [open, setOpen] = useState(false)
   const id = useId()
-  useEffect(() => setOpen(false), [mobile])
+  const interaction = useRef({ button: false, content: false, focused: false })
+  const closeTimer = useRef<ReturnType<typeof setTimeout>>()
+  const enter = (part: keyof typeof interaction.current) => {
+    if (mobile) return
+    clearTimeout(closeTimer.current)
+    interaction.current[part] = true
+    setOpen(true)
+  }
+  const leave = (part: keyof typeof interaction.current) => {
+    interaction.current[part] = false
+    clearTimeout(closeTimer.current)
+    // Allow the pointer to cross the gap between the button and the tooltip.
+    closeTimer.current = setTimeout(() => {
+      if (!Object.values(interaction.current).some(Boolean)) setOpen(false)
+    }, 150)
+  }
+  useEffect(() => {
+    setOpen(false)
+    interaction.current = { button: false, content: false, focused: false }
+    return () => clearTimeout(closeTimer.current)
+  }, [mobile])
+  useEffect(() => {
+    if (mobile || !open) return
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        interaction.current.content = false
+        setOpen(false)
+      }
+    }
+    document.addEventListener('keydown', dismiss)
+    return () => document.removeEventListener('keydown', dismiss)
+  }, [mobile, open])
   const button = (
     <Button
       type='button'
@@ -35,18 +66,10 @@ export function MetricHelp({ label, description }: { label: string; description:
       aria-haspopup={mobile ? 'dialog' : undefined}
       aria-expanded={open}
       aria-describedby={!mobile && open ? id : undefined}
-      onMouseEnter={() => {
-        if (!mobile) setOpen(true)
-      }}
-      onMouseLeave={() => {
-        if (!mobile) setOpen(false)
-      }}
-      onFocus={() => {
-        if (!mobile) setOpen(true)
-      }}
-      onBlur={() => {
-        if (!mobile) setOpen(false)
-      }}
+      onMouseEnter={() => enter('button')}
+      onMouseLeave={() => leave('button')}
+      onFocus={() => enter('focused')}
+      onBlur={() => leave('focused')}
       onClick={() => setOpen(true)}
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
@@ -65,7 +88,12 @@ export function MetricHelp({ label, description }: { label: string; description:
         <Tooltip
           isOpen={open}
           content={
-            <span id={id} style={{ display: 'block', maxWidth: 280, lineHeight: 1.6 }}>
+            <span
+              id={id}
+              onMouseEnter={() => enter('content')}
+              onMouseLeave={() => leave('content')}
+              style={{ display: 'block', maxWidth: 280, lineHeight: 1.6 }}
+            >
               {description}
             </span>
           }
