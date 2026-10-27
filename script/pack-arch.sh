@@ -3,7 +3,8 @@ set -euo pipefail
 
 tag="${1##*/}"
 channel=$(bash "$(dirname "$0")/release-channel.sh" "$tag")
-release_flags=(--notes-from-tag)
+release_title="${tag#v}"
+release_flags=(--title "$release_title" --notes-from-tag)
 if [[ "$channel" == beta ]]; then
   release_flags+=(--prerelease --latest=false)
 fi

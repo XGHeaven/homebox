@@ -67,7 +67,7 @@ cargo test --locked
 
 当前发布机制：
 
-- `.github/workflows/build.yml`：PR 运行前端检查与多平台构建；推送 `v*` tag 时额外通过 `script/pack-arch.sh` 创建 GitHub Release。发布说明来自 tag message（`--notes-from-tag`）；beta 使用 GitHub prerelease，且不设为 Latest。
+- `.github/workflows/build.yml`：PR 运行前端检查与多平台构建；推送 `v*` tag 时额外通过 `script/pack-arch.sh` 创建 GitHub Release。标题仅使用去掉 `v` 的版本号，发布说明来自 tag message（`--notes-from-tag`）；beta 使用 GitHub prerelease，且不设为 Latest。
 - `.github/workflows/docker.yml`：推送 `v*` tag 时构建 amd64 / arm64 镜像并合并为 `xgheaven/homebox:latest`，beta tag（建议 `v<version>-beta.N`）仅更新 `xgheaven/homebox:beta`，不覆盖 `latest`；当前不创建版本号镜像 tag。
 - PR 的 `release-tag` 任务跳过属于正常情况，不代表发布失败。
 

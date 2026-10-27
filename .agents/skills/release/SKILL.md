@@ -48,6 +48,9 @@ Draft concise, user-facing release notes from the commits and diffs since the pr
 Use a short plain-text list of changes. Do not add Markdown headings (`#`, `##`, `###`),
 bold markers, or code fences to the tag message. If grouping is useful, use plain labels
 such as `Features:` or `Fixes:`. The tag name itself must be only the version, e.g. `v0.1.3`.
+The GitHub Release title must be only the version without the `v` prefix, e.g. `0.1.3` or
+`0.2.0-beta.1`. Never include changelog text or a release summary in the title; keep all change
+content in the tag message and GitHub Release body.
 Omit merge mechanics and low-value internal detail unless it affects users or release artifacts.
 Preserve issue or PR numbers when useful. Clearly label the changelog as a draft the user can edit.
 
@@ -59,6 +62,7 @@ Show one release preview in this form before making any change:
 发布确认（当前尚未修改或推送任何内容）
 - 版本：0.1.2
 - Tag：v0.1.2（annotated tag）
+- GitHub Release 标题：0.1.2（仅版本号）
 - 目标：master @ <short-sha>
 - 版本文件：server/Cargo.toml、server/Cargo.lock
 - Changelog：
@@ -110,16 +114,18 @@ Match the historical release mechanism:
 Pushing the tag triggers:
 
 - `.github/workflows/build.yml` to build platform archives and create the GitHub Release through
-  `make pack-arch` / `gh release create --notes-from-tag`.
+  `make pack-arch` / `gh release create --title <version> --notes-from-tag`. The title contains
+  only the version without `v`; release notes contain the confirmed changelog.
 - `.github/workflows/docker.yml` to build amd64 and arm64 images and update
   `xgheaven/homebox:latest` for stable releases or `xgheaven/homebox:beta` for betas.
   Beta GitHub Releases use `--prerelease --latest=false`.
 
 ## 6. Verify completion
 
-Monitor both tag-triggered workflows to completion. Verify the GitHub Release exists, its notes
-match the confirmed changelog as closely as the workflow permits, and the expected archives are
-attached. For beta, verify the prerelease flag and `:beta` image; confirm it did not
+Monitor both tag-triggered workflows to completion. Verify the GitHub Release exists, its title
+is exactly the version without `v`, its notes match the confirmed changelog as closely as the
+workflow permits, and the expected archives are attached. For beta, verify the prerelease flag
+and `:beta` image; confirm it did not
 replace the stable latest release or Docker `:latest`. Report workflow and release links plus any failed matrix targets.
 
 If publishing partially succeeds, stop and describe the exact remote state. Do not delete or

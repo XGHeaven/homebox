@@ -36,6 +36,8 @@ class ReleaseTests(unittest.TestCase):
                 subprocess.run(['bash', 'script/pack-arch.sh', 'refs/tags/' + tag], cwd=work, env=env, check=True)
                 args = (work / 'args').read_text().splitlines()
                 self.assertEqual(args[:3], ['release', 'create', tag])
+                title_index = args.index('--title')
+                self.assertEqual(args[title_index + 1], tag.removeprefix('v'))
                 self.assertEqual('--prerelease' in args, beta)
                 self.assertEqual('--latest=false' in args, beta)
                 self.assertIn('homebox-test.tar.gz', args)
