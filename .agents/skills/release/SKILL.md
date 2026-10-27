@@ -34,10 +34,20 @@ reason, but keep the patch version as the default until the user chooses otherwi
 the `v` prefix; Cargo versions do not. Do not update `web/package.json`, whose historical version
 is independent.
 
+When beta is requested, use `vMAJOR.MINOR.PATCH-beta.N` (start at 1, increment for
+subsequent betas of the same target version), and set Cargo's version to the same value
+without `v`. Preserve an explicitly supplied valid beta version. The publishing scripts
+also accept `vMAJOR.MINOR.PATCH-beta`. Beta publishes a GitHub prerelease and Docker
+`:beta`, never `:latest`; stable versions publish Docker `:latest`. Unsupported prerelease
+suffixes are rejected rather than routed to stable. Inspect existing beta tags before
+suggesting a number and include the channel in the confirmation preview.
+
 ## 2. Draft the changelog
 
 Draft concise, user-facing release notes from the commits and diffs since the previous release.
-Group material changes under suitable headings such as Features, Performance, Fixes, and Build.
+Use a short plain-text list of changes. Do not add Markdown headings (`#`, `##`, `###`),
+bold markers, or code fences to the tag message. If grouping is useful, use plain labels
+such as `Features:` or `Fixes:`. The tag name itself must be only the version, e.g. `v0.1.3`.
 Omit merge mechanics and low-value internal detail unless it affects users or release artifacts.
 Preserve issue or PR numbers when useful. Clearly label the changelog as a draft the user can edit.
 
@@ -55,7 +65,8 @@ Show one release preview in this form before making any change:
   - ...
 - 本地验证：<commands/checks>
 - 远端动作：推送 release commit（如需要）和 tag；触发 Build、Docker、GitHub Release
-- Docker：当前工作流只更新 xgheaven/homebox:latest，不创建版本镜像 tag
+- 发布渠道：stable / beta（beta 的 GitHub Release 标记为 prerelease）
+- Docker：stable 更新 xgheaven/homebox:latest；beta 仅更新 xgheaven/homebox:beta，不创建版本镜像 tag
 
 请回复“确认发版”，或指出要修改的版本号、Changelog 或发布范围。
 ```
@@ -86,7 +97,11 @@ local check cannot prove every cross-platform matrix build will pass.
 Match the historical release mechanism:
 
 1. Ensure the release commit is on the intended branch and pushed when necessary.
-2. Create an annotated `v*` tag whose message contains the confirmed changelog.
+2. Create an annotated `v<version>` tag whose message contains the confirmed plain-text
+   changelog. Write the message to a temporary UTF-8 file and pass it with `git tag -a
+   <tag> -F <file>`. Before pushing, inspect `git for-each-ref --format='%(contents)'
+   refs/tags/<tag>` to verify the stored text and line breaks; do not use Markdown
+   headings in the message, since `--notes-from-tag` reuses it as release notes.
 3. Run a push dry-run before each real push.
 4. Push the branch first when a release commit was created, then push the tag explicitly.
 5. Never use force push, replace an existing tag, or delete a tag without separate explicit
@@ -97,13 +112,15 @@ Pushing the tag triggers:
 - `.github/workflows/build.yml` to build platform archives and create the GitHub Release through
   `make pack-arch` / `gh release create --notes-from-tag`.
 - `.github/workflows/docker.yml` to build amd64 and arm64 images and update
-  `xgheaven/homebox:latest`.
+  `xgheaven/homebox:latest` for stable releases or `xgheaven/homebox:beta` for betas.
+  Beta GitHub Releases use `--prerelease --latest=false`.
 
 ## 6. Verify completion
 
 Monitor both tag-triggered workflows to completion. Verify the GitHub Release exists, its notes
 match the confirmed changelog as closely as the workflow permits, and the expected archives are
-attached. Report workflow and release links plus any failed matrix targets.
+attached. For beta, verify the prerelease flag and `:beta` image; confirm it did not
+replace the stable latest release or Docker `:latest`. Report workflow and release links plus any failed matrix targets.
 
 If publishing partially succeeds, stop and describe the exact remote state. Do not delete or
 retarget the release/tag as an automatic recovery step.

@@ -1,3 +1,5 @@
+mod llm;
+
 use actix_web::web::Bytes;
 use actix_web::{
     get,
@@ -142,8 +144,20 @@ async fn main() -> std::io::Result<()> {
     match &cli.command {
         Comamnds::Serve(args) => {
             // OPTIMIZE: Configure worker count and connection pool for high throughput
-            let server = HttpServer::new(|| {
+            let llm_client = web::Data::new(llm::client().map_err(std::io::Error::other)?);
+            let server = HttpServer::new(move || {
                 App::new()
+                    .app_data(llm_client.clone())
+                    .service(
+                        web::resource("/api/llm")
+                            .app_data(web::JsonConfig::default().limit(64 * 1024))
+                            .route(web::post().to(llm::proxy)),
+                    )
+                    .service(
+                        web::resource("/api/llm/models")
+                            .app_data(web::JsonConfig::default().limit(64 * 1024))
+                            .route(web::post().to(llm::models)),
+                    )
                     .wrap(
                         middleware::DefaultHeaders::new().add(("Access-Control-Allow-Origin", "*")),
                     )
@@ -155,10 +169,7 @@ async fn main() -> std::io::Result<()> {
                         "/api/upload",
                         web::method(Method::OPTIONS).to(upload_options),
                     )
-                    .route(
-                        "/upload",
-                        web::method(Method::OPTIONS).to(upload_options),
-                    )
+                    .route("/upload", web::method(Method::OPTIONS).to(upload_options))
                     .route("/api/ping", web::get().to(ping_get))
                     .route("/ping", web::get().to(ping_get))
                     .route("/api/ping", web::head().to(ping_head))
